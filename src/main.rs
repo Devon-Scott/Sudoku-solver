@@ -1,29 +1,8 @@
-use std::fmt;
+mod singles;
+mod types;
 
-// Want to test performance differences between using BitArray and array of bools
-type BitMask = [bool; 9];
-
-#[derive(PartialEq)]
-enum Cell {
-    Empty,
-    Candidates(BitMask),
-    Value(i16)
-}
-
-type BasicGrid = [[i16;9]; 9];
-struct Grid(BasicGrid);
-
-type Board = [[Cell;9]; 9];
-
-impl fmt::Display for Grid {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        // let mut result: fmt::Formatter
-        for row in &self.0 {
-            let _ = writeln!(f, "{:?}", row);
-        }
-        writeln!(f)
-    }
-}
+use crate::singles::*;
+use crate::types::*;
 
 const TEST_GRID: BasicGrid = [
     [0, 0, 0, 0, 0, 8, 1, 0, 0],
@@ -106,19 +85,6 @@ fn verify(grid: &BasicGrid) -> bool {
     true
 }
 
-fn get_index_of_unique_candidate(mask: &BitMask) -> Option<usize> {
-    let mut idx: Option<usize> = None;
-    for i in 0..9 {
-        if mask[i]{
-            if idx != None  {
-                return None
-            }
-            idx = Some(i);
-        }
-    }
-    idx
-}
-
 fn make_candidate_sets(board: &mut Board) {
     for row in 0..9 {
         for col in 0..9 {
@@ -169,22 +135,6 @@ fn eliminate_candidates(board: &mut Board) -> bool {
                     }
                 }
 
-            }
-        }
-    }
-    change
-}
-
-fn solve_naked_singles(board: &mut Board) -> bool {
-    let mut change = false;
-    for row in 0..9 {
-        for col in 0..9 {
-            if let Cell::Candidates(bits) = board[row][col] {
-                let idx = get_index_of_unique_candidate(&bits);
-                if let Some(num) = idx {
-                    board[row][col] = Cell::Value((num + 1) as i16);
-                    change = true;
-                }
             }
         }
     }
@@ -287,8 +237,6 @@ fn main() {
 
     println!("One iteration of candidate checks");
     make_candidate_sets(&mut board);
-
-
 
     let mut c = eliminate_candidates(&mut board);
     while c {
