@@ -5,7 +5,7 @@ fn isolate_hidden_doubles_from_masks(candidate_set: &Vec<(usize, BitMask)>) -> V
     let mut result: Vec<(usize, usize, BitMask)> = Vec::new();
     for (i, bits_i) in candidate_set {
         for (j, bits_j) in candidate_set {
-            if bits_i == bits_j && bits_i.bits_set() == 2{
+            if i != j && bits_i == bits_j && bits_i.bits_set() == 2{
                 result.push((*i, *j, *bits_i));
             }
         }
@@ -108,6 +108,10 @@ pub fn determine_naked_doubles(board: &mut Board) -> bool {
         }
     }
     change
+}
+
+pub fn determine_hidden_doubles(board: &mut Board) -> bool {
+    false
 }
 
 #[cfg(test)]
@@ -246,5 +250,17 @@ mod tests {
 
         let correct_mask_second = mask(&[6, 9]);
         assert!(matches!(board[0][2], Cell::Candidates(actual) if actual == correct_mask_second));
+    }
+
+    #[test]
+    fn hidden_pairs_two_candidate_cells_row() {
+        let mut board = candidate_board();
+        board[0][0] = Cell::Candidates(mask(&[2, 4, 7, 9]));
+        board[0][1] = Cell::Candidates(mask(&[1, 2, 7]));
+
+        assert!(determine_hidden_doubles(&mut board));
+        let correct_mask = mask(&[2, 7]);
+        assert!(matches!(board[0][0], Cell::Candidates(actual) if actual == correct_mask));
+        assert!(matches!(board[0][1], Cell::Candidates(actual) if actual == correct_mask));
     }
 }

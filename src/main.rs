@@ -133,6 +133,7 @@ fn main() {
     let mut c = eliminate_candidates(&mut board);
     while c {
         c = false;
+        c = c | eliminate_candidates(&mut board);
         c = c | solve_naked_singles(&mut board);
         c = c | eliminate_candidates(&mut board);
         c = c | solve_hidden_singles(&mut board);
@@ -142,12 +143,18 @@ fn main() {
     println!("Test board after current algorithm");
     println!("{}", Grid(cells_to_grid(&board)));
 
+    // Candidates([false, false, false, false, false, false, false, false, false])
+    if verify(&cells_to_grid(&board)) {
+        println!("Sudoku Solved!")
+    }
 
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use std::cell;
+
+use super::*;
 
     fn assert_no_duplicate_values(board: &Board, phase: &str) {
         for row in 0..9 {
@@ -193,30 +200,50 @@ mod tests {
         }
     }
 
+    fn assert_no_empty_candidates(board: &Board, phase: &str) {
+        for row in 0..9 {
+            for col in 0..9 {
+                if let Cell::Candidates(bits) = &board[row][col] {
+                    assert!(
+                        bits.bits_set() > 0,
+                        "cell ({row}, {col}) has no remaining candidates after {phase}: {:?}\n{}",
+                        board[row][col], Grid(cells_to_grid(board))
+                    );
+                }
+            }
+        }
+    }
+
     #[test]
     fn every_solver_phase_preserves_sudoku_uniqueness() {
         let mut board = grid_to_cells(&TEST_GRID);
         make_candidate_sets(&mut board);
         eliminate_candidates(&mut board);
         assert_no_duplicate_values(&board, "initial candidate elimination");
+        assert_no_empty_candidates(&board, "initial candidate elimination");
 
         loop {
             let mut changed = false;
 
             changed |= solve_naked_singles(&mut board);
             assert_no_duplicate_values(&board, "naked singles");
+            assert_no_empty_candidates(&board, "naked singles");
 
             changed |= eliminate_candidates(&mut board);
             assert_no_duplicate_values(&board, "elimination after naked singles");
+            assert_no_empty_candidates(&board, "elimination after naked singles");
 
             changed |= solve_hidden_singles(&mut board);
             assert_no_duplicate_values(&board, "hidden singles");
+            assert_no_empty_candidates(&board, "hidden singles");
 
             changed |= eliminate_candidates(&mut board);
             assert_no_duplicate_values(&board, "elimination after hidden singles");
+            assert_no_empty_candidates(&board, "elimination after hidden singles");
 
             changed |= determine_naked_doubles(&mut board);
             assert_no_duplicate_values(&board, "determine naked doubles");
+            assert_no_empty_candidates(&board, "determine naked doubles");
 
             if !changed {
                 break;
