@@ -1,8 +1,10 @@
 mod candidates;
+mod pairs;
 mod singles;
 mod types;
 
 use crate::candidates::*;
+use crate::pairs::*;
 use crate::singles::*;
 use crate::types::*;
 
@@ -135,6 +137,7 @@ fn main() {
         c = c | eliminate_candidates(&mut board);
         c = c | solve_hidden_singles(&mut board);
         c = c | eliminate_candidates(&mut board);
+        c = c | determine_naked_doubles(&mut board);
     }
     println!("Test board after current algorithm");
     println!("{}", Grid(cells_to_grid(&board)));
@@ -211,6 +214,9 @@ mod tests {
 
             changed |= eliminate_candidates(&mut board);
             assert_no_duplicate_values(&board, "elimination after hidden singles");
+
+            changed |= determine_naked_doubles(&mut board);
+            assert_no_duplicate_values(&board, "determine naked doubles");
 
             if !changed {
                 break;

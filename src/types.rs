@@ -3,6 +3,36 @@ use std::fmt;
 // Want to test performance differences between using BitArray and array of bools
 pub type BitMask = [bool; 9];
 
+pub trait BitMaskExt {
+    fn bits_set(&self) -> usize;
+    // fn contains(&self, other: &BitMask) -> bool;
+    // fn remove(&mut self, other: &BitMask);
+}
+
+impl BitMaskExt for BitMask {
+    fn bits_set(&self) -> usize {
+        self.iter().filter(|x| **x == true).count()
+    }
+
+    // fn contains(&self, other: &BitMask) -> bool {
+    //     for i in 0..self.len() {
+    //         if self[i] && !other[i] {
+    //             return false
+    //         }
+    //     }
+    //     let larger = self.bits_set() > other.bits_set();
+    //     larger
+    // }
+
+    // fn remove(&mut self, other: &BitMask) {
+    //     for i in 0..self.len() {
+    //         if self[i] != !other[i] {
+    //             self[i] = false;
+    //         }
+    //     }
+    // }
+}
+
 #[derive(PartialEq)]
 pub enum Cell {
     Empty,

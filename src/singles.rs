@@ -111,15 +111,15 @@ pub fn solve_hidden_singles(board: &mut Board) -> bool {
     for r in [0,3,6] {
         for c in [0,3,6] {
             let mut candidate_set: Vec<(usize, BitMask)> = Vec::new();
-            let mut idx = 0;
+            let mut i: usize = 0;
             for row in 0..3 {
                 for col in 0..3 {
                     let r_idx = r + row;
                     let c_idx = c + col;
                     if let Cell::Candidates(bits) = board[r_idx][c_idx] {
-                        candidate_set.push((idx, bits));
+                        candidate_set.push((i, bits));
                     }
-                    idx += 1;
+                    i += 1;
                 }
             }
             let results = get_hidden_singles_from_masks(&candidate_set);
