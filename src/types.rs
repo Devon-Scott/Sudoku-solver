@@ -59,7 +59,13 @@ impl fmt::Display for Grid {
                 if c % 3 == 0 {
                     let _ = write!(f, "| ");
                 }
-                let _ = write!(f, "{col} ");
+                if *col == 0 {
+                    let _ = write!(f, ". ");
+                }
+                else {
+                    let _ = write!(f, "{col} ");
+                }
+                
                 c += 1;
             }
             let _ = writeln!(f, "|");
