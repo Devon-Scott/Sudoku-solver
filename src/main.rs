@@ -1,10 +1,12 @@
 mod candidates;
 mod pairs;
+mod parser;
 mod singles;
 mod types;
 
 use crate::candidates::*;
 use crate::pairs::*;
+use crate::parser::*;
 use crate::singles::*;
 use crate::types::*;
 
@@ -133,6 +135,9 @@ fn cells_to_grid(board: &Board) -> BasicGrid {
 }
 
 fn main() {
+    let parser = Parser{};
+    parser.parse();
+
     let grid: BasicGrid = NOT_FUN;
     let mut board: Board = grid_to_cells(&grid);
     if !verify(&grid) {
