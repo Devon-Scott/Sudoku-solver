@@ -135,8 +135,9 @@ fn cells_to_grid(board: &Board) -> BasicGrid {
 }
 
 fn main() {
-    let parser = Parser{};
-    parser.parse();
+    let mut parser = Parser::new();
+
+    let _ = parser.parse();
 
     let grid: BasicGrid = NOT_FUN;
     let mut board: Board = grid_to_cells(&grid);

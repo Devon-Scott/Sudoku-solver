@@ -1,7 +1,7 @@
 use crate::types::*;
 
 use crossterm::{
-    event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode},
+    event::{self, DisableMouseCapture, EnableMouseCapture, Event, KeyCode, KeyEventKind},
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
@@ -14,20 +14,30 @@ use ratatui::{
 };
 use std::io;
 
-pub struct Parser {}
+pub struct Parser {
+    selected_row: i8, // 0..9
+    selected_col: i8
+}
 
 impl Parser {
+    pub fn new() -> Self {
+        Self {
+            selected_row: 0,
+            selected_col: 0
+        }
+    }
+
     // fn send_input_to_board(&self) -> Board {
 
     // }
 
-    fn run_app<B: ratatui::backend::Backend>(&self, terminal: &mut Terminal<B>) -> io::Result<()> {
+    fn run_app<B: ratatui::backend::Backend>(&mut self, terminal: &mut Terminal<B>) -> io::Result<()> {
         loop {
             // Draw the frame
+            terminal.clear();
             terminal.draw(|f| {
-                let size = f.area(); // Grab entire screen space
+                let size = f.area(); 
 
-                // Divide the space into two vertical halves
                 let chunks = Layout::default()
                     .direction(Direction::Vertical)
                     .constraints([
@@ -37,14 +47,11 @@ impl Parser {
                     ])
                     .split(size);
 
-                // // Create widgets
-                // let title_block = Block::default()
-                //     .title(" Sudoku Puzzle Input ")
-                //     .borders(Borders::ALL)
-                //     .border_style(Style::default().fg(Color::White));
+                let row = self.selected_row;
+                let col = self.selected_col;
 
                 let title_block = Paragraph::new("   Arrow keys to move cursor\n   Press a number to input a value at the cursor\n   Press Delete to clear a value\n   Press Enter to finish inputting and solve\n   Press 'q' or `esc` to quit safely.")
-                    .block(Block::default().title(" Sudoku Puzzle Input ").borders(Borders::ALL))
+                    .block(Block::default().title(format!(" Sudoku Puzzle Input ({row})({col}) ")).borders(Borders::ALL))
                     .style(Style::default().fg(Color::White));
 
                 // Fiddling with widths took a while to make the TUI look nice. I'd like a better way to do this
@@ -94,15 +101,32 @@ impl Parser {
             // 4. Handle events/input
             if event::poll(std::time::Duration::from_millis(16))? {
                 if let Event::Key(key) = event::read()? {
-                    if key.code == KeyCode::Char('q') {
-                        return Ok(());
+                    if key.kind != KeyEventKind::Press {
+                        continue; 
+                    }
+                    match key.code {
+                        KeyCode::Char('q') => return Ok(()),
+                        KeyCode::Esc => return Ok(()),
+                        KeyCode::Up => {
+                            self.selected_row = std::cmp::max(self.selected_row - 1, 0);
+                        }
+                        KeyCode::Down => {
+                            self.selected_row = std::cmp::min(self.selected_row + 1, 8);
+                        }
+                        KeyCode::Left => {
+                            self.selected_col = std::cmp::max(self.selected_col - 1, 0);
+                        }
+                        KeyCode::Right => {
+                            self.selected_col = std::cmp::min(self.selected_col + 1, 8);
+                        }
+                        _ => {}
                     }
                 }
             }
         }
     }
 
-    pub fn parse (&self) -> Result<(), io::Error> {
+    pub fn parse (&mut self) -> Result<(), io::Error> {
         // 1. Setup the terminal
         enable_raw_mode()?; // Capture key presses instantly without needing Enter
         let mut stdout = io::stdout();
