@@ -33,7 +33,7 @@ impl BitMaskExt for BitMask {
     // }
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone, Copy)]
 pub enum Cell {
     Empty,
     Candidates(BitMask),

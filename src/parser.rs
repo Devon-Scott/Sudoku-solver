@@ -9,32 +9,56 @@ use ratatui::{
     backend::CrosstermBackend,
     layout::{Constraint, Direction, Layout},
     style::{Color, Modifier, Style},
-    widgets::{Block, Borders, Paragraph, Row, Table, TableState},
+    widgets::{Block, Borders, Paragraph, Row, Table, TableState, Cell as TuiCell},
+    text::{Line, Span},
     Terminal,
 };
 use std::io;
 
 pub struct Parser {
     selected_row: i8, // 0..9
-    selected_col: i8
+    selected_col: i8,
+    board: Board
 }
 
 impl Parser {
     pub fn new() -> Self {
         Self {
             selected_row: 0,
-            selected_col: 0
+            selected_col: 0,
+            board: [[Cell::Empty ; 9] ; 9]
         }
     }
 
-    // fn send_input_to_board(&self) -> Board {
+    fn make_cell_at(&self, row: usize, col: usize) -> (String, String, String) {
+        let column_template = vec![
+            " | .", " .", " .", "| .", " .", " .", "| .", " .", " . |",
+        ];
+        let (prefix, suffix) = column_template[col].split_once('.').unwrap();
+        let value = if let Cell::Value(num) = self.board[row][col] {
+            String::from(num.to_string())
+        } else { 
+            String::from('.')
+        };
+        (String::from(prefix), value, String::from(suffix))
+    }
 
-    // }
+    fn place_digit_in_board(&mut self, digit: i16) {
+        let row = self.selected_row as usize;
+        let col = self.selected_col as usize;
+        self.board[row][col] = Cell::Value(digit);
+    }
+
+    fn clear_digit_from_board(&mut self) {
+        let row = self.selected_row as usize;
+        let col = self.selected_col as usize;
+        self.board[row][col] = Cell::Empty;
+    }
 
     fn run_app<B: ratatui::backend::Backend>(&mut self, terminal: &mut Terminal<B>) -> io::Result<()> {
+        let _ = terminal.clear();
         loop {
             // Draw the frame
-            terminal.clear();
             terminal.draw(|f| {
                 let size = f.area(); 
 
@@ -55,10 +79,7 @@ impl Parser {
                     .style(Style::default().fg(Color::White));
 
                 // Fiddling with widths took a while to make the TUI look nice. I'd like a better way to do this
-                let number_row = Row::new(vec![
-                    " | .", " .", " .", "| .", " .", " .", "| .", " .", " . |",
-                ]);
-
+                // Likewise with column_template
                 let horizontal_row = Row::new(vec![
                     "  --", "--", "---", " --", "--", "---", " --", "--", "---",
                 ]);
@@ -68,7 +89,28 @@ impl Parser {
                     if row % 3 == 0 {
                         rows.push(horizontal_row.clone());
                     }
-                    rows.push(number_row.clone());
+                    let mut cells = Vec::new();
+                    for col in 0..9 {
+                        let (prefix, value, suffix) = self.make_cell_at(row, col);
+                        let value_style =
+                            if row == self.selected_row as usize
+                                && col == self.selected_col as usize
+                            {
+                                Style::default()
+                                    .bg(Color::White)
+                                    .fg(Color::Black)
+                            } else {
+                                Style::default()
+                            };
+
+                        let cell = TuiCell::from(Line::from(vec![
+                            Span::raw(prefix),
+                            Span::styled(value, value_style),
+                            Span::raw(suffix),
+                        ]));
+                        cells.push(cell);
+                    }
+                    rows.push(Row::new(cells));
                 }
                 rows.push(horizontal_row.clone());
 
@@ -119,6 +161,8 @@ impl Parser {
                         KeyCode::Right => {
                             self.selected_col = std::cmp::min(self.selected_col + 1, 8);
                         }
+                        KeyCode::Char(c) if c.is_ascii_digit() => self.place_digit_in_board(c.to_digit(10).unwrap() as i16),
+                        KeyCode::Backspace => self.clear_digit_from_board(),
                         _ => {}
                     }
                 }
