@@ -19,6 +19,18 @@ const TEST_GRID: BasicGrid = [
     [0, 6, 1, 0, 8, 3, 0, 4, 0],
     [4, 0, 0, 5, 0, 0, 0, 6, 0]];
 
+// Sourced from https://sandiway.arizona.edu/sudoku/examples.html
+const NOT_FUN: BasicGrid = [
+    [0, 2, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 6, 0, 0, 0, 0, 3],
+    [0, 7, 4, 0, 8, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 3, 0, 0, 2],
+    [0, 8, 0, 0, 4, 0, 0, 1, 0],
+    [6, 0, 0, 5, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 1, 0, 7, 8, 0],
+    [5, 0, 0, 0, 0, 9, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 4, 0]];
+
 // const SOLVED_GRID: BasicGrid = [
 //     [1, 2, 3, 4, 5, 6, 7, 8, 9],
 //     [4, 5, 6, 7, 8, 9, 1, 2, 3],
@@ -121,7 +133,7 @@ fn cells_to_grid(board: &Board) -> BasicGrid {
 }
 
 fn main() {
-    let grid: BasicGrid = TEST_GRID;
+    let grid: BasicGrid = NOT_FUN;
     let mut board: Board = grid_to_cells(&grid);
     if !verify(&grid) {
         println!("Test Board:");
@@ -216,7 +228,7 @@ use super::*;
 
     #[test]
     fn every_solver_phase_preserves_sudoku_uniqueness() {
-        let mut board = grid_to_cells(&TEST_GRID);
+        let mut board = grid_to_cells(&NOT_FUN);
         make_candidate_sets(&mut board);
         eliminate_candidates(&mut board);
         assert_no_duplicate_values(&board, "initial candidate elimination");
