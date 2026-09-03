@@ -4,12 +4,15 @@ mod parser;
 mod singles;
 mod types;
 
+use std::io;
+
 use crate::candidates::*;
 use crate::pairs::*;
 use crate::parser::*;
 use crate::singles::*;
 use crate::types::*;
 
+// Sampled from the Sudoku app on my phone
 const TEST_GRID: BasicGrid = [
     [0, 0, 0, 0, 0, 8, 1, 0, 0],
     [0, 0, 0, 0, 0, 0, 9, 0, 0],
@@ -134,45 +137,53 @@ fn cells_to_grid(board: &Board) -> BasicGrid {
     result
 }
 
-fn main() {
+fn main() -> Result<(), io::Error>{
+    
     let mut parser = Parser::new();
+    let Some(mut board) = parser.parse()? else {
+        return Ok(());
+    };
 
-    let _ = parser.parse();
+    // let grid: BasicGrid = NOT_FUN;
+    // let mut board: Board = grid_to_cells(&grid);
+    // if !verify(&grid) {
+    //     println!("Test Board:");
+    //     println!("{}", Grid(grid));
+    // }
 
-    let grid: BasicGrid = NOT_FUN;
-    let mut board: Board = grid_to_cells(&grid);
-    if !verify(&grid) {
-        println!("Test Board:");
-        println!("{}", Grid(grid));
-    }
+    println!("Input board:");
+    println!("{}", Grid(cells_to_grid(&board)));
 
     make_candidate_sets(&mut board);
 
     let mut c = eliminate_candidates(&mut board);
     while c {
         c = false;
-        c = c | eliminate_candidates(&mut board);
-        c = c | solve_naked_singles(&mut board);
-        c = c | eliminate_candidates(&mut board);
-        c = c | solve_hidden_singles(&mut board);
-        c = c | eliminate_candidates(&mut board);
-        c = c | determine_naked_doubles(&mut board);
+        c |= eliminate_candidates(&mut board);
+        c |= solve_naked_singles(&mut board);
+        c |= eliminate_candidates(&mut board);
+        c |= solve_hidden_singles(&mut board);
+        c |= eliminate_candidates(&mut board);
+        c |= determine_naked_doubles(&mut board);
     }
-    println!("Test board after current algorithm");
+    println!("Board after current algorithm");
     println!("{}", Grid(cells_to_grid(&board)));
 
     // Candidates([false, false, false, false, false, false, false, false, false])
     if verify(&cells_to_grid(&board)) {
-        println!("Sudoku Solved!")
+        println!("Sudoku Solved!");
     }
+    else {
+        println!("Unable to solve, need more heuristics");
+    }
+    return Ok(())
 
 }
 
 #[cfg(test)]
 mod tests {
-    use std::cell;
-
-use super::*;
+    
+    use super::*;
 
     fn assert_no_duplicate_values(board: &Board, phase: &str) {
         for row in 0..9 {
