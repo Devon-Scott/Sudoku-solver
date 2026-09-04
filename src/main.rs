@@ -14,28 +14,39 @@ use crate::singles::*;
 use crate::types::*;
 
 // Sampled from the Sudoku app on my phone
-const TEST_GRID: BasicGrid = [
-    [0, 0, 0, 0, 0, 8, 1, 0, 0],
-    [0, 0, 0, 0, 0, 0, 9, 0, 0],
-    [3, 0, 4, 9, 0, 0, 8, 2, 0],
-    [7, 0, 0, 0, 0, 2, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 2, 0, 0],
-    [0, 0, 9, 0, 1, 6, 0, 7, 0],
-    [0, 0, 3, 0, 6, 0, 0, 0, 1],
-    [0, 6, 1, 0, 8, 3, 0, 4, 0],
-    [4, 0, 0, 5, 0, 0, 0, 6, 0]];
+// const TEST_GRID: BasicGrid = [
+//     [0, 0, 0, 0, 0, 8, 1, 0, 0],
+//     [0, 0, 0, 0, 0, 0, 9, 0, 0],
+//     [3, 0, 4, 9, 0, 0, 8, 2, 0],
+//     [7, 0, 0, 0, 0, 2, 0, 0, 0],
+//     [0, 0, 0, 0, 0, 0, 2, 0, 0],
+//     [0, 0, 9, 0, 1, 6, 0, 7, 0],
+//     [0, 0, 3, 0, 6, 0, 0, 0, 1],
+//     [0, 6, 1, 0, 8, 3, 0, 4, 0],
+//     [4, 0, 0, 5, 0, 0, 0, 6, 0]];
 
 // Sourced from https://sandiway.arizona.edu/sudoku/examples.html
-// const NOT_FUN: BasicGrid = [
-//     [0, 2, 0, 0, 0, 0, 0, 0, 0],
-//     [0, 0, 0, 6, 0, 0, 0, 0, 3],
-//     [0, 7, 4, 0, 8, 0, 0, 0, 0],
-//     [0, 0, 0, 0, 0, 3, 0, 0, 2],
-//     [0, 8, 0, 0, 4, 0, 0, 1, 0],
-//     [6, 0, 0, 5, 0, 0, 0, 0, 0],
-//     [0, 0, 0, 0, 1, 0, 7, 8, 0],
-//     [5, 0, 0, 0, 0, 9, 0, 0, 0],
-//     [0, 0, 0, 0, 0, 0, 0, 4, 0]];
+const NOT_FUN: BasicGrid = [
+    [0, 2, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 6, 0, 0, 0, 0, 3],
+    [0, 7, 4, 0, 8, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 3, 0, 0, 2],
+    [0, 8, 0, 0, 4, 0, 0, 1, 0],
+    [6, 0, 0, 5, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 1, 0, 7, 8, 0],
+    [5, 0, 0, 0, 0, 9, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 4, 0]];
+
+const NOT_FUN_SOLUTION: BasicGrid = [
+    [1, 2, 6, 4, 3, 7, 9, 5, 8],
+    [8, 9, 5, 6, 2, 1, 4, 7, 3],
+    [3, 7, 4, 9, 8, 5, 1, 2, 6],
+    [4, 5, 7, 1, 9, 3, 8, 6, 2],
+    [9, 8, 3, 2, 4, 6, 5, 1, 7],
+    [6, 1, 2, 5, 7, 8, 3, 9, 4],
+    [2, 6, 9, 3, 1, 4, 7, 8, 5],
+    [5, 4, 8, 7, 6, 9, 2, 3, 1],
+    [7, 3, 1, 8, 5, 2, 6, 4, 9]];
 
 // const SOLVED_GRID: BasicGrid = [
 //     [1, 2, 3, 4, 5, 6, 7, 8, 9],
@@ -142,7 +153,7 @@ fn main() -> Result<(), io::Error>{
     let args: Vec<String> = env::args().collect();
 
     let mut board = if args.len() > 1 && &args[1] == "--test" {
-        let grid: BasicGrid = TEST_GRID;
+        let grid: BasicGrid = NOT_FUN;
         let board: Board = grid_to_cells(&grid);
         board
     }
@@ -247,13 +258,43 @@ mod tests {
         }
     }
 
+    fn assert_solution_still_possible(
+        board: &Board,
+        solution: &BasicGrid,
+        phase: &str,
+    ) {
+        for row in 0..9 {
+            for col in 0..9 {
+                let expected = solution[row][col];
+
+                match board[row][col] {
+                    Cell::Value(actual) => {
+                        assert_eq!(actual, expected, "wrong value after {phase}");
+                    }
+                    Cell::Candidates(bits) => {
+                        assert!(
+                            bits[(expected - 1) as usize],
+                            "correct candidate {expected} removed from ({row}, {col}) after {phase}"
+                        );
+                    }
+                    Cell::Empty => panic!("unexpected empty cell after {phase}"),
+                }
+            }
+        }
+    }
+
     #[test]
-    fn every_solver_phase_preserves_sudoku_uniqueness() {
-        let mut board = grid_to_cells(&TEST_GRID);
+    fn full_integration_test() {
+        let mut board = grid_to_cells(&NOT_FUN);
         make_candidate_sets(&mut board);
         eliminate_candidates(&mut board);
         assert_no_duplicate_values(&board, "initial candidate elimination");
         assert_no_empty_candidates(&board, "initial candidate elimination");
+        assert_solution_still_possible(
+            &board,
+            &NOT_FUN_SOLUTION,
+            "initial candidate elimination",
+        );
 
         loop {
             let mut changed = false;
@@ -261,26 +302,48 @@ mod tests {
             changed |= solve_naked_singles(&mut board);
             assert_no_duplicate_values(&board, "naked singles");
             assert_no_empty_candidates(&board, "naked singles");
+            assert_solution_still_possible(&board, &NOT_FUN_SOLUTION, "naked singles");
 
             changed |= eliminate_candidates(&mut board);
             assert_no_duplicate_values(&board, "elimination after naked singles");
             assert_no_empty_candidates(&board, "elimination after naked singles");
+            assert_solution_still_possible(
+                &board,
+                &NOT_FUN_SOLUTION,
+                "elimination after naked singles",
+            );
 
             changed |= solve_hidden_singles(&mut board);
             assert_no_duplicate_values(&board, "hidden singles");
             assert_no_empty_candidates(&board, "hidden singles");
+            assert_solution_still_possible(&board, &NOT_FUN_SOLUTION, "hidden singles");
 
             changed |= eliminate_candidates(&mut board);
             assert_no_duplicate_values(&board, "elimination after hidden singles");
             assert_no_empty_candidates(&board, "elimination after hidden singles");
+            assert_solution_still_possible(
+                &board,
+                &NOT_FUN_SOLUTION,
+                "elimination after hidden singles",
+            );
 
             changed |= determine_naked_doubles(&mut board);
             assert_no_duplicate_values(&board, "determine naked doubles");
             assert_no_empty_candidates(&board, "determine naked doubles");
+            assert_solution_still_possible(
+                &board,
+                &NOT_FUN_SOLUTION,
+                "determine naked doubles",
+            );
 
             changed |= determine_hidden_doubles(&mut board);
             assert_no_duplicate_values(&board, "determine hidden doubles");
             assert_no_empty_candidates(&board, "determine hidden doubles");
+            assert_solution_still_possible(
+                &board,
+                &NOT_FUN_SOLUTION,
+                "determine hidden doubles",
+            );
 
             if !changed {
                 break;
