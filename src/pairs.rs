@@ -1,7 +1,7 @@
 use crate::types::*;
 // use crate::candidates::*;
 
-fn isolate_hidden_doubles_from_masks(candidate_set: &Vec<(usize, BitMask)>) -> Vec<(usize, usize, BitMask)>{
+fn isolate_naked_doubles_from_masks(candidate_set: &Vec<(usize, BitMask)>) -> Vec<(usize, usize, BitMask)>{
     let mut result: Vec<(usize, usize, BitMask)> = Vec::new();
     for (i, bits_i) in candidate_set {
         for (j, bits_j) in candidate_set {
@@ -24,7 +24,7 @@ pub fn determine_naked_doubles(board: &mut Board) -> bool {
                 _ => None,
             })
             .collect();
-        let pair_mask = isolate_hidden_doubles_from_masks(&candidate_set);
+        let pair_mask = isolate_naked_doubles_from_masks(&candidate_set);
 
         for (i, j, mask) in pair_mask {
             for col in 0..9 {
@@ -52,7 +52,7 @@ pub fn determine_naked_doubles(board: &mut Board) -> bool {
                 _ => None,
             })
             .collect();
-        let pair_mask = isolate_hidden_doubles_from_masks(&candidate_set);
+        let pair_mask = isolate_naked_doubles_from_masks(&candidate_set);
 
         for (i, j, mask) in pair_mask {
             for row in 0..9 {
@@ -87,7 +87,7 @@ pub fn determine_naked_doubles(board: &mut Board) -> bool {
                     i += 1;
                 }
             }
-            let results = isolate_hidden_doubles_from_masks(&candidate_set);
+            let results = isolate_naked_doubles_from_masks(&candidate_set);
             for (i, j, mask) in results {
                 for idx in 0..9 {
                     if idx == i || idx == j {
