@@ -1,5 +1,6 @@
-use crate::types::*;
 use crate::candidates::*;
+use crate::helpers::*;
+use crate::types::*;
 
 pub fn solve_naked_singles(board: &mut Board) -> bool {
     let mut change = false;
@@ -56,12 +57,8 @@ pub fn solve_hidden_singles(board: &mut Board) -> bool {
 
     // For row
     for row in 0..9 {
-        let mut candidate_set: Vec<(usize, BitMask)> = Vec::new(); 
-        for col in 0..9 {
-            if let Cell::Candidates(bits) = board[row][col] {
-                candidate_set.push((col, bits));
-            }
-        }
+        let candidate_set: Vec<(usize, BitMask)> = 
+            get_unit_candidate_masks(board, row, 0, UnitMode::Row);
         let results = get_hidden_singles_from_masks(&candidate_set);
         for (idx, value) in results {
             board[row][idx] = Cell::Value(value);
@@ -76,12 +73,8 @@ pub fn solve_hidden_singles(board: &mut Board) -> bool {
 
     // For col
     for col in 0..9 {
-        let mut candidate_set: Vec<(usize, BitMask)> = Vec::new(); 
-        for row in 0..9 {
-            if let Cell::Candidates(bits) = board[row][col] {
-                candidate_set.push((row, bits));
-            }
-        }
+        let candidate_set: Vec<(usize, BitMask)> = 
+            get_unit_candidate_masks(board, 0, col, UnitMode::Column); 
         let results = get_hidden_singles_from_masks(&candidate_set);
         for (idx, value) in results {
             board[idx][col] = Cell::Value(value);
@@ -97,18 +90,8 @@ pub fn solve_hidden_singles(board: &mut Board) -> bool {
     // For box
     for r in [0,3,6] {
         for c in [0,3,6] {
-            let mut candidate_set: Vec<(usize, BitMask)> = Vec::new();
-            let mut i: usize = 0;
-            for row in 0..3 {
-                for col in 0..3 {
-                    let r_idx = r + row;
-                    let c_idx = c + col;
-                    if let Cell::Candidates(bits) = board[r_idx][c_idx] {
-                        candidate_set.push((i, bits));
-                    }
-                    i += 1;
-                }
-            }
+            let  candidate_set: Vec<(usize, BitMask)> = 
+                get_unit_candidate_masks(board, r, c, UnitMode::Box);
             let results = get_hidden_singles_from_masks(&candidate_set);
             for (idx, value) in results {
                 let row = r + idx / 3;
