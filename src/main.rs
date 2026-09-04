@@ -4,7 +4,7 @@ mod parser;
 mod singles;
 mod types;
 
-use std::io;
+use std::{io, env};
 
 use crate::candidates::*;
 use crate::pairs::*;
@@ -25,16 +25,16 @@ const TEST_GRID: BasicGrid = [
     [4, 0, 0, 5, 0, 0, 0, 6, 0]];
 
 // Sourced from https://sandiway.arizona.edu/sudoku/examples.html
-const NOT_FUN: BasicGrid = [
-    [0, 2, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 6, 0, 0, 0, 0, 3],
-    [0, 7, 4, 0, 8, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 3, 0, 0, 2],
-    [0, 8, 0, 0, 4, 0, 0, 1, 0],
-    [6, 0, 0, 5, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 1, 0, 7, 8, 0],
-    [5, 0, 0, 0, 0, 9, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 4, 0]];
+// const NOT_FUN: BasicGrid = [
+//     [0, 2, 0, 0, 0, 0, 0, 0, 0],
+//     [0, 0, 0, 6, 0, 0, 0, 0, 3],
+//     [0, 7, 4, 0, 8, 0, 0, 0, 0],
+//     [0, 0, 0, 0, 0, 3, 0, 0, 2],
+//     [0, 8, 0, 0, 4, 0, 0, 1, 0],
+//     [6, 0, 0, 5, 0, 0, 0, 0, 0],
+//     [0, 0, 0, 0, 1, 0, 7, 8, 0],
+//     [5, 0, 0, 0, 0, 9, 0, 0, 0],
+//     [0, 0, 0, 0, 0, 0, 0, 4, 0]];
 
 // const SOLVED_GRID: BasicGrid = [
 //     [1, 2, 3, 4, 5, 6, 7, 8, 9],
@@ -138,19 +138,21 @@ fn cells_to_grid(board: &Board) -> BasicGrid {
 }
 
 fn main() -> Result<(), io::Error>{
-    
-    let mut parser = Parser::new();
-    let Some(mut board) = parser.parse()? else {
-        return Ok(());
+    let args: Vec<String> = env::args().collect();
+
+    let mut board = if args.len() > 1 && &args[1] == "--test" {
+        let grid: BasicGrid = TEST_GRID;
+        let board: Board = grid_to_cells(&grid);
+        board
+    }
+    else {
+        let mut parser = Parser::new();
+        let Some(board) = parser.parse()? else {
+            return Ok(());
+        };
+        board
     };
-
-    // let grid: BasicGrid = NOT_FUN;
-    // let mut board: Board = grid_to_cells(&grid);
-    // if !verify(&grid) {
-    //     println!("Test Board:");
-    //     println!("{}", Grid(grid));
-    // }
-
+    
     println!("Input board:");
     println!("{}", Grid(cells_to_grid(&board)));
 
@@ -245,7 +247,7 @@ mod tests {
 
     #[test]
     fn every_solver_phase_preserves_sudoku_uniqueness() {
-        let mut board = grid_to_cells(&NOT_FUN);
+        let mut board = grid_to_cells(&TEST_GRID);
         make_candidate_sets(&mut board);
         eliminate_candidates(&mut board);
         assert_no_duplicate_values(&board, "initial candidate elimination");
