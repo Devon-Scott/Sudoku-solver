@@ -168,6 +168,7 @@ fn main() -> Result<(), io::Error>{
         c |= solve_hidden_singles(&mut board);
         c |= eliminate_candidates(&mut board);
         c |= determine_naked_doubles(&mut board);
+        c |= determine_hidden_doubles(&mut board)
     }
     println!("Board after current algorithm");
     println!("{}", Grid(cells_to_grid(&board)));
@@ -276,6 +277,10 @@ mod tests {
             changed |= determine_naked_doubles(&mut board);
             assert_no_duplicate_values(&board, "determine naked doubles");
             assert_no_empty_candidates(&board, "determine naked doubles");
+
+            changed |= determine_hidden_doubles(&mut board);
+            assert_no_duplicate_values(&board, "determine hidden doubles");
+            assert_no_empty_candidates(&board, "determine hidden doubles");
 
             if !changed {
                 break;
