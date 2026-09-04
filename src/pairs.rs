@@ -1,5 +1,5 @@
-use crate::types::*;
-// use crate::candidates::*;
+use crate::{helpers::get_unit_candidate_masks, types::*};
+use crate::helpers::*;
 
 fn isolate_naked_doubles_from_masks(candidate_set: &Vec<(usize, BitMask)>) -> Vec<(usize, usize, BitMask)>{
     let mut result: Vec<(usize, usize, BitMask)> = Vec::new();
@@ -18,13 +18,10 @@ pub fn determine_naked_doubles(board: &mut Board) -> bool {
 
     // For row
     for row in 0..9 {
-        let candidate_set: Vec<(usize, BitMask)> = (0..9)
-            .filter_map(|col| match board[row][col] {
-                Cell::Candidates(bits) => Some((col, bits)),
-                _ => None,
-            })
-            .collect();
-        let pair_mask = isolate_naked_doubles_from_masks(&candidate_set);
+        let candidate_set = 
+            get_unit_candidate_masks(board, row, 0, UnitMode::Row);
+        let pair_mask = 
+            isolate_naked_doubles_from_masks(&candidate_set);
 
         for (i, j, mask) in pair_mask {
             for col in 0..9 {
@@ -46,13 +43,10 @@ pub fn determine_naked_doubles(board: &mut Board) -> bool {
 
     // for col
     for col in 0..9 {
-        let candidate_set: Vec<(usize, BitMask)> = (0..9)
-            .filter_map(|row| match board[row][col] {
-                Cell::Candidates(bits) => Some((row, bits)),
-                _ => None,
-            })
-            .collect();
-        let pair_mask = isolate_naked_doubles_from_masks(&candidate_set);
+        let candidate_set= 
+            get_unit_candidate_masks(board, 0, col, UnitMode::Column);
+        let pair_mask = 
+            isolate_naked_doubles_from_masks(&candidate_set);
 
         for (i, j, mask) in pair_mask {
             for row in 0..9 {
@@ -75,19 +69,10 @@ pub fn determine_naked_doubles(board: &mut Board) -> bool {
     // For box
     for r in [0,3,6] {
         for c in [0,3,6] {
-            let mut candidate_set: Vec<(usize, BitMask)> = Vec::new();
-            let mut i = 0;
-            for row in 0..3 {
-                for col in 0..3 {
-                    let r_idx = r + row;
-                    let c_idx = c + col;
-                    if let Cell::Candidates(bits) = board[r_idx][c_idx] {
-                        candidate_set.push((i, bits));
-                    }
-                    i += 1;
-                }
-            }
-            let results = isolate_naked_doubles_from_masks(&candidate_set);
+            let candidate_set = 
+                get_unit_candidate_masks(board, r, c, UnitMode::Box);
+            let results = 
+                isolate_naked_doubles_from_masks(&candidate_set);
             for (i, j, mask) in results {
                 for idx in 0..9 {
                     if idx == i || idx == j {

@@ -1,4 +1,5 @@
 mod candidates;
+mod helpers;
 mod pairs;
 mod parser;
 mod singles;
