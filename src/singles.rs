@@ -1,27 +1,14 @@
 use crate::types::*;
 use crate::candidates::*;
 
-fn get_index_of_unique_candidate(mask: &BitMask) -> Option<usize> {
-    let mut idx: Option<usize> = None;
-    for i in 0..9 {
-        if mask[i]{
-            if idx != None  {
-                return None
-            }
-            idx = Some(i);
-        }
-    }
-    idx
-}
-
 pub fn solve_naked_singles(board: &mut Board) -> bool {
     let mut change = false;
     for row in 0..9 {
         for col in 0..9 {
             if let Cell::Candidates(bits) = board[row][col] {
-                let idx = get_index_of_unique_candidate(&bits);
-                if let Some(num) = idx {
-                    board[row][col] = Cell::Value((num + 1) as i16);
+                if bits.bits_set() == 1 {
+                    let index = bits.iter().position(|bit| *bit == true).unwrap();
+                    board[row][col] = Cell::Value((index + 1) as i16);
                     change = true;
                     eliminate_candidates(board);
                 }
@@ -156,13 +143,6 @@ mod tests {
         std::array::from_fn(|_| {
             std::array::from_fn(|_| Cell::Candidates([false; 9]))
         })
-    }
-
-    #[test]
-    fn unique_candidate_finds_one_bit_only() {
-        assert_eq!(get_index_of_unique_candidate(&mask(&[4])), Some(3));
-        assert_eq!(get_index_of_unique_candidate(&mask(&[4, 7])), None);
-        assert_eq!(get_index_of_unique_candidate(&mask(&[])), None);
     }
 
     #[test]
