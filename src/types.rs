@@ -6,7 +6,7 @@ pub type BitMask = [bool; 9];
 pub trait BitMaskExt {
     fn bits_set(&self) -> usize;
     fn and(lhs: &BitMask, rhs: &BitMask) -> BitMask;
-    // fn contains(&self, other: &BitMask) -> bool;
+    // fn or(lhs: &BitMask, rhs: &BitMask) -> BitMask;
     // fn retain(&mut self, other: &BitMask);
 }
 
@@ -25,14 +25,14 @@ impl BitMaskExt for BitMask {
         result
     }
 
-    // fn contains(&self, other: &BitMask) -> bool {
-    //     for i in 0..self.len() {
-    //         if self[i] && !other[i] {
-    //             return false
+    // fn or(lhs: &BitMask, rhs: &BitMask) -> BitMask {
+    //     let mut result: BitMask = [false; 9];
+    //     for value in 0..9 {
+    //         if lhs[value] || rhs[value] {
+    //             result[value] = true;
     //         }
     //     }
-    //     let larger = self.bits_set() > other.bits_set();
-    //     larger
+    //     result
     // }
 
     // fn retain(&mut self, other: &BitMask) {

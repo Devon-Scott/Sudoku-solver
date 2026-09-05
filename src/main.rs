@@ -4,16 +4,18 @@ mod helpers;
 mod pairs;
 mod parser;
 mod singles;
+mod subsets;
 mod types;
 
 use std::{io, env};
-use std::time::{Duration, Instant};
+use std::time::Instant;
 
 use crate::box_line::*;
 use crate::candidates::*;
 use crate::pairs::*;
 use crate::parser::*;
 use crate::singles::*;
+use crate::subsets::*;
 use crate::types::*;
 
 // Sampled from the Sudoku app on my phone
@@ -175,6 +177,7 @@ fn main() -> Result<(), io::Error>{
     make_candidate_sets(&mut board);
 
     let start = Instant::now();
+    let mut iter = 0;
     let mut c = eliminate_candidates(&mut board);
     while c {
         c = false;
@@ -186,6 +189,12 @@ fn main() -> Result<(), io::Error>{
         c |= determine_naked_doubles(&mut board);
         c |= determine_hidden_doubles(&mut board);
         c |= eliminate_pointing_sets(&mut board);
+        c |= box_line_reduction(&mut board, helpers::UnitMode::Row);
+        c |= box_line_reduction(&mut board, helpers::UnitMode::Column);
+        c |= determine_naked_subsets(&mut board);
+        if c {
+            iter += 1;
+        }
     }
     let duration = start.elapsed().as_micros();
     println!("Board after current algorithm");
@@ -193,7 +202,12 @@ fn main() -> Result<(), io::Error>{
 
     // Candidates([false, false, false, false, false, false, false, false, false])
     if verify(&cells_to_grid(&board)) {
-        println!("Sudoku Solved in {duration} µs!");
+        if iter == 1 {
+            println!("Sudoku Solved in {duration} µs, in {iter} iteration of constraint propagation!");
+        }
+        else {
+            println!("Sudoku Solved in {duration} µs, in {iter} iterations of constraint propagation!");
+        }
     }
     else {
         let empty_count = board.iter()
@@ -363,6 +377,24 @@ mod tests {
                 &board,
                 &NOT_FUN_SOLUTION,
                 "Eliminate pointing sets",
+            );
+
+            changed |= box_line_reduction(&mut board, helpers::UnitMode::Row);
+            assert_no_duplicate_values(&board, "Box Line Reduction in Row");
+            assert_no_empty_candidates(&board, "Box Line Reduction in Row");
+            assert_solution_still_possible(
+                &board,
+                &NOT_FUN_SOLUTION,
+                "Box Line Reduction in Row",
+            );
+
+            changed |= box_line_reduction(&mut board, helpers::UnitMode::Column);
+            assert_no_duplicate_values(&board, "Box Line Reduction in Column");
+            assert_no_empty_candidates(&board, "Box Line Reduction in Column");
+            assert_solution_still_possible(
+                &board,
+                &NOT_FUN_SOLUTION,
+                "Box Line Reduction in Column",
             );
 
             if !changed {
