@@ -1,5 +1,6 @@
 use crate::types::*;
 
+#[derive(PartialEq)]
 pub enum UnitMode {
     Row,
     Column,

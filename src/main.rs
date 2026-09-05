@@ -1,3 +1,4 @@
+mod box_line;
 mod candidates;
 mod helpers;
 mod pairs;
@@ -6,7 +7,9 @@ mod singles;
 mod types;
 
 use std::{io, env};
+use std::time::{Duration, Instant};
 
+use crate::box_line::*;
 use crate::candidates::*;
 use crate::pairs::*;
 use crate::parser::*;
@@ -26,6 +29,7 @@ use crate::types::*;
 //     [4, 0, 0, 5, 0, 0, 0, 6, 0]];
 
 // Sourced from https://sandiway.arizona.edu/sudoku/examples.html
+// Current algorithm leaves 61 cells unsolved
 const NOT_FUN: BasicGrid = [
     [0, 2, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 6, 0, 0, 0, 0, 3],
@@ -170,6 +174,7 @@ fn main() -> Result<(), io::Error>{
 
     make_candidate_sets(&mut board);
 
+    let start = Instant::now();
     let mut c = eliminate_candidates(&mut board);
     while c {
         c = false;
@@ -179,17 +184,23 @@ fn main() -> Result<(), io::Error>{
         c |= solve_hidden_singles(&mut board);
         c |= eliminate_candidates(&mut board);
         c |= determine_naked_doubles(&mut board);
-        c |= determine_hidden_doubles(&mut board)
+        c |= determine_hidden_doubles(&mut board);
+        c |= eliminate_pointing_sets(&mut board);
     }
+    let duration = start.elapsed().as_micros();
     println!("Board after current algorithm");
     println!("{}", Grid(cells_to_grid(&board)));
 
     // Candidates([false, false, false, false, false, false, false, false, false])
     if verify(&cells_to_grid(&board)) {
-        println!("Sudoku Solved!");
+        println!("Sudoku Solved in {duration} µs!");
     }
     else {
-        println!("Unable to solve, need more heuristics");
+        let empty_count = board.iter()
+            .flatten()
+            .filter(|&&cell| matches!(cell, Cell::Candidates(_)))
+            .count();
+        println!("Unable to solve. {empty_count} cells remain unsolved. Need more heuristics");
     }
     return Ok(())
 
@@ -343,6 +354,15 @@ mod tests {
                 &board,
                 &NOT_FUN_SOLUTION,
                 "determine hidden doubles",
+            );
+
+            changed |= eliminate_pointing_sets(&mut board);
+            assert_no_duplicate_values(&board, "Eliminate pointing sets");
+            assert_no_empty_candidates(&board, "Eliminate pointing sets");
+            assert_solution_still_possible(
+                &board,
+                &NOT_FUN_SOLUTION,
+                "Eliminate pointing sets",
             );
 
             if !changed {
