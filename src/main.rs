@@ -31,7 +31,7 @@ use crate::types::*;
 //     [4, 0, 0, 5, 0, 0, 0, 6, 0]];
 
 // Sourced from https://sandiway.arizona.edu/sudoku/examples.html
-// Current algorithm leaves 61 cells unsolved
+// Current algorithm leaves 27 cells unsolved
 const NOT_FUN: BasicGrid = [
     [0, 2, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 6, 0, 0, 0, 0, 3],
@@ -203,10 +203,10 @@ fn main() -> Result<(), io::Error>{
     // Candidates([false, false, false, false, false, false, false, false, false])
     if verify(&cells_to_grid(&board)) {
         if iter == 1 {
-            println!("Sudoku Solved in {duration} µs, in {iter} iteration of constraint propagation!");
+            println!("Sudoku Solved in {duration} µs,\nusing {iter} iteration of constraint propagation!");
         }
         else {
-            println!("Sudoku Solved in {duration} µs, in {iter} iterations of constraint propagation!");
+            println!("Sudoku Solved in {duration} µs,\nusing {iter} iterations of constraint propagation!");
         }
     }
     else {
@@ -395,6 +395,15 @@ mod tests {
                 &board,
                 &NOT_FUN_SOLUTION,
                 "Box Line Reduction in Column",
+            );
+
+            changed |= determine_naked_subsets(&mut board);
+            assert_no_duplicate_values(&board, "Determine Naked Subsets");
+            assert_no_empty_candidates(&board, "Determine Naked Subsets");
+            assert_solution_still_possible(
+                &board,
+                &NOT_FUN_SOLUTION,
+                "Determine Naked Subsets",
             );
 
             if !changed {

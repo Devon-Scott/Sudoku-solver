@@ -6,8 +6,8 @@ pub type BitMask = [bool; 9];
 pub trait BitMaskExt {
     fn bits_set(&self) -> usize;
     fn and_mask(lhs: &BitMask, rhs: &BitMask) -> BitMask;
-    // fn or(lhs: &BitMask, rhs: &BitMask) -> BitMask;
-    // fn retain(&mut self, other: &BitMask);
+    fn or(&mut self, rhs: &BitMask) -> BitMask;
+    fn remove(&mut self, other: &BitMask) -> bool;
 }
 
 impl BitMaskExt for BitMask {
@@ -25,23 +25,25 @@ impl BitMaskExt for BitMask {
         result
     }
 
-    // fn or(lhs: &BitMask, rhs: &BitMask) -> BitMask {
-    //     let mut result: BitMask = [false; 9];
-    //     for value in 0..9 {
-    //         if lhs[value] || rhs[value] {
-    //             result[value] = true;
-    //         }
-    //     }
-    //     result
-    // }
+    fn or(&mut self, rhs: &BitMask) -> BitMask {
+        for value in 0..self.len() {
+            if rhs[value] {
+                self[value] = true;
+            }
+        }
+        *self
+    }
 
-    // fn retain(&mut self, other: &BitMask) {
-    //     for i in 0..self.len() {
-    //         if self[i] && !other[i] {
-    //             self[i] = false;
-    //         }
-    //     }
-    // }
+    fn remove(&mut self, other: &BitMask) -> bool {
+        let mut change = false;
+        for i in 0..self.len() {
+            if self[i] && other[i] {
+                self[i] = false;
+                change = true;
+            }
+        }
+        change
+    }
 }
 
 #[derive(PartialEq, Debug, Clone, Copy)]
