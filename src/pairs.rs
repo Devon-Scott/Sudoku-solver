@@ -102,7 +102,7 @@ fn isolate_hidden_doubles_from_masks(candidate_set: &Vec<(usize, BitMask)>)
     for (i, mask_i) in candidate_set {
         for (j, mask_j) in candidate_set {
             if i != j && mask_i != mask_j {
-                let shared = BitMask::and(&mask_i, &mask_j);
+                let shared = BitMask::and_mask(&mask_i, &mask_j);
                 if shared.bits_set() == 2 {
                     // Need to assert that those two bits do not appear anywhere else
                     let mut it = shared.iter().enumerate().filter_map(|(i, &v)| v.then_some(i));
