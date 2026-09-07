@@ -5,6 +5,7 @@ mod pairs;
 mod parser;
 mod singles;
 mod subsets;
+mod swordfish;
 mod test_puzzles;
 mod types;
 
@@ -17,6 +18,7 @@ use crate::pairs::*;
 use crate::parser::*;
 use crate::singles::*;
 use crate::subsets::*;
+use crate::swordfish::*;
 use crate::test_puzzles::*;
 use crate::types::*;
 
