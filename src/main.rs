@@ -5,6 +5,7 @@ mod pairs;
 mod parser;
 mod singles;
 mod subsets;
+mod test_puzzles;
 mod types;
 
 use std::{io, env};
@@ -16,55 +17,8 @@ use crate::pairs::*;
 use crate::parser::*;
 use crate::singles::*;
 use crate::subsets::*;
+use crate::test_puzzles::*;
 use crate::types::*;
-
-// Sampled from the Sudoku app on my phone
-// const TEST_GRID: BasicGrid = [
-//     [0, 0, 0, 0, 0, 8, 1, 0, 0],
-//     [0, 0, 0, 0, 0, 0, 9, 0, 0],
-//     [3, 0, 4, 9, 0, 0, 8, 2, 0],
-//     [7, 0, 0, 0, 0, 2, 0, 0, 0],
-//     [0, 0, 0, 0, 0, 0, 2, 0, 0],
-//     [0, 0, 9, 0, 1, 6, 0, 7, 0],
-//     [0, 0, 3, 0, 6, 0, 0, 0, 1],
-//     [0, 6, 1, 0, 8, 3, 0, 4, 0],
-//     [4, 0, 0, 5, 0, 0, 0, 6, 0]];
-
-// Sourced from https://sandiway.arizona.edu/sudoku/examples.html
-// Current algorithm leaves 27 cells unsolved
-const NOT_FUN: BasicGrid = [
-    [0, 2, 0, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0, 6, 0, 0, 0, 0, 3],
-    [0, 7, 4, 0, 8, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 3, 0, 0, 2],
-    [0, 8, 0, 0, 4, 0, 0, 1, 0],
-    [6, 0, 0, 5, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 1, 0, 7, 8, 0],
-    [5, 0, 0, 0, 0, 9, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0, 4, 0]];
-
-const NOT_FUN_SOLUTION: BasicGrid = [
-    [1, 2, 6, 4, 3, 7, 9, 5, 8],
-    [8, 9, 5, 6, 2, 1, 4, 7, 3],
-    [3, 7, 4, 9, 8, 5, 1, 2, 6],
-    [4, 5, 7, 1, 9, 3, 8, 6, 2],
-    [9, 8, 3, 2, 4, 6, 5, 1, 7],
-    [6, 1, 2, 5, 7, 8, 3, 9, 4],
-    [2, 6, 9, 3, 1, 4, 7, 8, 5],
-    [5, 4, 8, 7, 6, 9, 2, 3, 1],
-    [7, 3, 1, 8, 5, 2, 6, 4, 9]];
-
-// const SOLVED_GRID: BasicGrid = [
-//     [1, 2, 3, 4, 5, 6, 7, 8, 9],
-//     [4, 5, 6, 7, 8, 9, 1, 2, 3],
-//     [7, 8, 9, 1, 2, 3, 4, 5, 6],
-//     [2, 3, 4, 5, 6, 7, 8, 9, 1],
-//     [5, 6, 7, 8, 9, 1, 2, 3, 4],
-//     [8, 9, 1, 2, 3, 4, 5, 6, 7],
-//     [3, 4, 5, 6, 7, 8, 9, 1, 2],
-//     [6, 7, 8, 9, 1, 2, 3, 4, 5],
-//     [9, 1, 2, 3, 4, 5, 6, 7, 8]
-// ];
 
 fn verify(grid: &BasicGrid) -> bool {
     for row in 0..9 {
@@ -171,7 +125,11 @@ fn main() -> Result<(), io::Error>{
         board
     };
     
-    println!("Input board:");
+    let mut empty_count = board.iter()
+        .flatten()
+        .filter(|&&cell| matches!(cell, Cell::Empty))
+        .count();
+    println!("Input board ({empty_count} empty cells):");
     println!("{}", Grid(cells_to_grid(&board)));
 
     make_candidate_sets(&mut board);
@@ -209,7 +167,7 @@ fn main() -> Result<(), io::Error>{
         }
     }
     else {
-        let empty_count = board.iter()
+        empty_count = board.iter()
             .flatten()
             .filter(|&&cell| matches!(cell, Cell::Candidates(_)))
             .count();
