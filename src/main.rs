@@ -200,7 +200,6 @@ fn main() -> Result<(), io::Error>{
     println!("Board after current algorithm");
     println!("{}", Grid(cells_to_grid(&board)));
 
-    // Candidates([false, false, false, false, false, false, false, false, false])
     if verify(&cells_to_grid(&board)) {
         if iter == 1 {
             println!("Sudoku Solved in {duration} µs,\nusing {iter} iteration of constraint propagation!");

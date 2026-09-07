@@ -1,45 +1,6 @@
 use crate::helpers::*;
 use crate::types::*;
 
-// fn factorial(n: usize) -> usize {
-//     if n == 0 { return 1 ;}
-//     (1..=n).fold(1, |acc, x| acc * x)
-// }
-
-// fn increment(list: &mut [bool], size: usize) -> bool {
-//     let len = list.len();
-//     let count = list.iter().filter(|x| **x == true).count();
-//     // Last index of a true value
-//     let mut pos = list.iter().rev().position(|x| *x == true).unwrap();
-
-//     // Base case
-//     if count == 1 && size == 1 && pos == len - 1 {
-//         return false; 
-//     }
-
-//     if count == size && pos < len - 1 {
-//         list[pos] = false;
-//         list[pos + 1] = true;
-//         return true;
-//     }
-
-//     if count == size {
-//         if !increment(&mut list[0..len-1], size - 1) {
-//             return false
-//         }
-//         list[pos] = false;
-//         pos = list.iter().rev().position(|x| *x == true).unwrap();
-//         list[pos + 1] = true;
-//     }
-    
-//     if count < size {
-        
-//         list[pos] = true;
-//         return true;
-//     }
-//     false
-// }
-
 fn iterate_for_subsets(set: &Vec<(usize, BitMask)>, 
                         size: usize, 
                         start: usize,
@@ -50,7 +11,6 @@ fn iterate_for_subsets(set: &Vec<(usize, BitMask)>,
     
     if sublen == size {
         result.push(subset.clone());
-        // subset.clear();
         return
     }
 
@@ -346,45 +306,4 @@ mod tests {
             }
         }
     }
-
-    // #[test]
-    // fn increment_increments_normally() {
-    //     let mut test_case = vec![true, true, true, false, false];
-    //     assert!(increment(&mut test_case, 3));
-    //     assert_eq!(test_case, vec![true, true, false, true, false]);
-    // }
-
-    // #[test]
-    // fn increment_increments_initially() {
-    //     let mut test_case = vec![true, true, false, false, false];
-    //     assert!(increment(&mut test_case, 3));
-    //     assert_eq!(test_case, vec![true, true, true, false, false]);
-    // }
-
-    // #[test]
-    // fn increment_wraps_around() {
-    //     let mut test_case = vec![true, true, false, false, true];
-    //     assert!(increment(&mut test_case, 3));
-    //     assert_eq!(test_case, vec![true, false, true, true, false]);
-    // }
-
-    // #[test]
-    // fn increment_increments_near_end() {
-    //     let mut test_case = vec![true, false, false, true, true];
-    //     assert!(increment(&mut test_case, 3));
-    //     assert_eq!(test_case, vec![false, true, false, true, true]);
-    // }
-
-    // #[test]
-    // fn increment_starts_cleanly() {
-    //     let mut test_case = vec![false, false, false, false, false];
-    //     assert!(increment(&mut test_case, 3));
-    //     assert_eq!(test_case, vec![true, false, false, false, false]);
-    // }
-
-    // #[test]
-    // fn increment_finishes_cleanly() {
-    //     let mut test_case = vec![false, false, true, true, true];
-    //     assert!(!increment(&mut test_case, 3));
-    // }
 }
