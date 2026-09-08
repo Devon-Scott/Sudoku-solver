@@ -152,6 +152,7 @@ fn main() -> Result<(), io::Error>{
         c |= box_line_reduction(&mut board, helpers::UnitMode::Row);
         c |= box_line_reduction(&mut board, helpers::UnitMode::Column);
         c |= determine_naked_subsets(&mut board);
+        c |= swordfish_elimination(&mut board);
         if c {
             iter += 1;
         }
@@ -363,6 +364,15 @@ mod tests {
                 &board,
                 &NOT_FUN_SOLUTION,
                 "Determine Naked Subsets",
+            );
+
+            changed |= swordfish_elimination(&mut board);
+            assert_no_duplicate_values(&board, "Swordfish Elimination");
+            assert_no_empty_candidates(&board, "Swordfish Elimination");
+            assert_solution_still_possible(
+                &board,
+                &NOT_FUN_SOLUTION,
+                "Swordfish Elimination",
             );
 
             if !changed {

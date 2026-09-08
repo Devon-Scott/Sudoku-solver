@@ -7,6 +7,7 @@ pub trait BitMaskExt {
     fn bits_set(&self) -> usize;
     fn and_mask(lhs: &BitMask, rhs: &BitMask) -> BitMask;
     fn or(&mut self, rhs: &BitMask) -> BitMask;
+    fn and(&mut self, rhs: &BitMask);
     fn remove(&mut self, other: &BitMask) -> bool;
 }
 
@@ -32,6 +33,17 @@ impl BitMaskExt for BitMask {
             }
         }
         *self
+    }
+
+    fn and(&mut self, rhs: &BitMask) {
+        for value in 0..self.len() {
+            if self[value] && rhs[value] {
+                self[value] = true;
+            }
+            else {
+                self[value] = false;
+            }
+        }
     }
 
     fn remove(&mut self, other: &BitMask) -> bool {

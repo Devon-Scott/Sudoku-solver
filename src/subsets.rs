@@ -1,11 +1,11 @@
 use crate::helpers::*;
 use crate::types::*;
 
-fn iterate_for_subsets(set: &Vec<(usize, BitMask)>, 
-                        size: usize, 
-                        start: usize,
-                        subset: &mut Vec<(usize, BitMask)>,
-                        result: &mut Vec<Vec<(usize, BitMask)>>) {
+pub fn iterate_for_subsets<T:Clone + Copy>(set: &Vec<T>, 
+                                        size: usize, 
+                                        start: usize,
+                                        subset: &mut Vec<T>,
+                                        result: &mut Vec<Vec<T>>){
     let len = set.len();
     let sublen = subset.len();
     

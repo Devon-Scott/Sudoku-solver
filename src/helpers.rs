@@ -47,3 +47,7 @@ pub fn get_unit_candidate_masks(board: &Board, row: usize, col: usize, mode: Uni
     }
     candidate_set
 }
+
+fn set_unit_candidate_masks(board: &mut Board, index: usize, masks: &Vec<(usize, BitMask)>, mode: UnitMode) {
+    
+}
