@@ -19,7 +19,7 @@ pub fn determine_naked_doubles(board: &mut Board) -> bool {
     // For row
     for row in 0..9 {
         let candidate_set = 
-            get_unit_candidate_masks(board, row, 0, UnitMode::Row);
+            get_unit_candidate_masks(board, row, UnitMode::Row);
         let pair_mask = 
             isolate_naked_doubles_from_masks(&candidate_set);
 
@@ -44,7 +44,7 @@ pub fn determine_naked_doubles(board: &mut Board) -> bool {
     // for col
     for col in 0..9 {
         let candidate_set= 
-            get_unit_candidate_masks(board, 0, col, UnitMode::Column);
+            get_unit_candidate_masks(board, col, UnitMode::Column);
         let pair_mask = 
             isolate_naked_doubles_from_masks(&candidate_set);
 
@@ -67,25 +67,25 @@ pub fn determine_naked_doubles(board: &mut Board) -> bool {
     }
     
     // For box
-    for r in [0,3,6] {
-        for c in [0,3,6] {
-            let candidate_set = 
-                get_unit_candidate_masks(board, r, c, UnitMode::Box);
-            let results = 
-                isolate_naked_doubles_from_masks(&candidate_set);
-            for (i, j, mask) in results {
-                for idx in 0..9 {
-                    if idx == i || idx == j {
-                        continue
-                    }
-                    let row = r + idx / 3;
-                    let col = c + idx % 3;
-                    if let Cell::Candidates(ref mut bits) = board[row][col] {
-                        for val_idx in 0..9 {
-                            if mask[val_idx] && bits[val_idx] {
-                                bits[val_idx] = false;
-                                change = true;
-                            }
+    for box_idx in 0..9 {
+        let candidate_set = 
+            get_unit_candidate_masks(board, box_idx, UnitMode::Box);
+        let results = 
+            isolate_naked_doubles_from_masks(&candidate_set);
+        for (i, j, mask) in results {
+            for idx in 0..9 {
+                if idx == i || idx == j {
+                    continue
+                }
+                let row_start = (box_idx / 3) * 3;
+                let col_start = (box_idx % 3) * 3;
+                let row = row_start + idx / 3;
+                let col = col_start + idx % 3;
+                if let Cell::Candidates(ref mut bits) = board[row][col] {
+                    for val_idx in 0..9 {
+                        if mask[val_idx] && bits[val_idx] {
+                            bits[val_idx] = false;
+                            change = true;
                         }
                     }
                 }
@@ -132,54 +132,52 @@ pub fn determine_hidden_doubles(board: &mut Board) -> bool {
     // For row
     for row in 0..9 {
         let candidate_set = 
-            get_unit_candidate_masks(board, row, 0, UnitMode::Row);
+            get_unit_candidate_masks(board, row, UnitMode::Row);
 
         let results = isolate_hidden_doubles_from_masks(&candidate_set);
         for (col_i, shared) in results {
-            if let Cell::Candidates(board_mask) = &mut board[row][col_i] {
-                *board_mask = shared;
-                change = true;
+            if let Cell::Candidates(mask) = &mut board[row][col_i] {
+                if *mask != shared {
+                    *mask = shared;
+                    change = true;
+                }
             };
-            // if let Cell::Candidates(board_mask) = &mut board[row][col_j] {
-            //     *board_mask = shared;
-            //     change = true;
-            // };
         }
     }
 
     // For col
     for col in 0..9 {
         let candidate_set = 
-            get_unit_candidate_masks(board, 0, col, UnitMode::Column);
+            get_unit_candidate_masks(board, col, UnitMode::Column);
 
         let results = isolate_hidden_doubles_from_masks(&candidate_set);
         for (row_i, shared) in results {
-            if let Cell::Candidates(board_mask) = &mut board[row_i][col] {
-                *board_mask = shared;
-                change = true;
+            if let Cell::Candidates(mask) = &mut board[row_i][col] {
+                if *mask != shared {
+                    *mask = shared;
+                    change = true;
+                }
             };
-            // if let Cell::Candidates(board_mask) = &mut board[row_j][col] {
-            //     *board_mask = shared;
-            //     change = true;
-            // };
         }
     }
 
     // For box
-    for r in [0,3,6] {
-        for c in [0,3,6] {
-            let candidate_set = 
-                get_unit_candidate_masks(board, r, c, UnitMode::Box);
-            let results = 
-                isolate_hidden_doubles_from_masks(&candidate_set);
-            for (i, shared) in results {
-                let row = r + i / 3;
-                let col = c + i % 3;
-                if let Cell::Candidates(board_mask) = &mut board[row][col] {
-                    *board_mask = shared;
+    for box_idx in 0..9 {
+        let candidate_set = 
+            get_unit_candidate_masks(board, box_idx, UnitMode::Box);
+        let results = 
+            isolate_hidden_doubles_from_masks(&candidate_set);
+        for (idx, shared) in results {
+            let row_start = (box_idx / 3) * 3;
+            let col_start = (box_idx % 3) * 3;
+            let row = row_start + idx / 3;
+            let col = col_start + idx % 3;
+            if let Cell::Candidates(mask) = &mut board[row][col] {
+                if *mask != shared {
+                    *mask = shared;
                     change = true;
-                };   
-            }
+                }
+            };   
         }
     }
 
