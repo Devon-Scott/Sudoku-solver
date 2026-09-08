@@ -62,10 +62,10 @@ impl BitMaskExt for BitMask {
 pub enum Cell {
     Empty,
     Candidates(BitMask),
-    Value(i16)
+    Value(usize)
 }
 
-pub type BasicGrid = [[i16;9]; 9];
+pub type BasicGrid = [[usize;9]; 9];
 pub struct Grid(pub BasicGrid);
 
 pub type Board = [[Cell;9]; 9];

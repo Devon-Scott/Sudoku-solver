@@ -14,6 +14,7 @@ use std::time::Instant;
 
 use crate::box_line::*;
 use crate::candidates::*;
+use crate::helpers::{UnitMode, get_unit};
 use crate::pairs::*;
 use crate::parser::*;
 use crate::singles::*;
@@ -21,6 +22,27 @@ use crate::subsets::*;
 use crate::swordfish::*;
 use crate::test_puzzles::*;
 use crate::types::*;
+
+fn verify_board(board: &Board) -> bool {
+    for mode in UnitMode::LIST {
+        for index in 0..9 {
+            let set = get_unit(board, index, mode);
+            let mut seen: BitMask = [false; 9];
+            for cell in set {
+                if let Cell::Value(num) = cell {
+                    if seen[num - 1] {
+                        return false
+                    }
+                    seen[num - 1] = true;
+                }
+                else {
+                    return false;
+                }
+            }
+        }
+    }
+    true
+}
 
 fn verify(grid: &BasicGrid) -> bool {
     for row in 0..9 {
@@ -115,7 +137,7 @@ fn main() -> Result<(), io::Error>{
     let args: Vec<String> = env::args().collect();
 
     let mut board = if args.len() > 1 && &args[1] == "--test" {
-        let grid: BasicGrid = NOT_FUN;
+        let grid: BasicGrid = TEST_GRID;
         let board: Board = grid_to_cells(&grid);
         board
     }
@@ -154,6 +176,9 @@ fn main() -> Result<(), io::Error>{
         c |= solve_singles(&mut board);
         if c {
             iter += 1;
+        }
+        if verify_board(&board) {
+            break;
         }
     }
     let duration = start.elapsed().as_micros();

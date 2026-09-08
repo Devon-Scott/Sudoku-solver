@@ -63,7 +63,7 @@ impl Parser {
         (String::from(prefix), value, String::from(suffix))
     }
 
-    fn place_digit_in_board(&mut self, digit: i16) {
+    fn place_digit_in_board(&mut self, digit: usize) {
         let row = self.selected_row;
         let col = self.selected_col;
         self.board[row][col] = Cell::Value(digit);
@@ -158,7 +158,7 @@ impl Parser {
                         KeyCode::Right => {
                             self.selected_col = std::cmp::min(self.selected_col + 1, 8);
                         }
-                        KeyCode::Char(c) if c.is_ascii_digit() => self.place_digit_in_board(c.to_digit(10).unwrap() as i16),
+                        KeyCode::Char(c) if c.is_ascii_digit() => self.place_digit_in_board(c.to_digit(10).unwrap() as usize),
                         KeyCode::Backspace => self.clear_digit_from_board(),
                         KeyCode::Enter => {
                             // Assume the board is well formed. Implement validity checks later

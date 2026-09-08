@@ -9,7 +9,7 @@ pub fn solve_naked_singles(board: &mut Board) -> bool {
             if let Cell::Candidates(bits) = board[row][col] {
                 if bits.bits_set() == 1 {
                     let index = bits.iter().position(|bit| *bit == true).unwrap();
-                    board[row][col] = Cell::Value((index + 1) as i16);
+                    board[row][col] = Cell::Value(index + 1);
                     change = true;
                     eliminate_candidates(board);
                 }
@@ -36,7 +36,7 @@ fn solve_hidden_singles_in_unit(set: &mut [Cell; 9]) {
             }            
         }
         if seen && single {
-            set[idx] = Cell::Value((value as i16) + 1);
+            set[idx] = Cell::Value(value + 1);
         }
     }
 }
