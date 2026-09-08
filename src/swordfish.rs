@@ -42,7 +42,7 @@ pub fn swordfish_elimination(board: &mut Board) -> bool {
         for p in &permutations {
             let mut masks = Vec::new();
             for row in p {
-                masks.push(get_unit_candidate_masks(board, *row, 0, UnitMode::Row));
+                masks.push(get_unit_candidate_masks(board, *row, UnitMode::Row));
             }            
             
             for value in 0..9 {
@@ -72,7 +72,7 @@ pub fn swordfish_elimination(board: &mut Board) -> bool {
         for p in &permutations {
             let mut masks = Vec::new();
             for col in p {
-                masks.push(get_unit_candidate_masks(board, 0, *col, UnitMode::Column));
+                masks.push(get_unit_candidate_masks(board, *col, UnitMode::Column));
             }
 
             for value in 0..9 {
