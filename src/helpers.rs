@@ -49,8 +49,8 @@ pub fn get_unit_candidate_masks(board: &Board, index: usize, mode: UnitMode)
     candidate_set
 }
 
-// The number of masks should equal the number returned from a corresponding
-// call to get_unit_candidate_masks
+// The number of masks, and their indices, should equal the numbers returned 
+// from a corresponding call to get_unit_candidate_masks
 // Each index in (index, bitmask) is relative to the unit being referenced
 pub fn set_unit_candidate_masks(board: &mut Board, index: usize, masks: &[(usize, BitMask)], mode: UnitMode) -> bool {
     debug_assert!(masks.len() <= 9);

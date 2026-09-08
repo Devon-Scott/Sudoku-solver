@@ -1,3 +1,5 @@
+use ratatui::layout::Rows;
+
 use crate::helpers::*;
 use crate::types::*;
 
@@ -24,58 +26,58 @@ fn detect_lines_in_pointing_set(indices: &[usize]) -> Option<(usize, UnitMode)> 
 
 pub fn eliminate_pointing_sets(board: &mut Board) -> bool {
     let mut change = false;
-    for r in [0, 3, 6] {
-        for c in [0, 3, 6] {
-            let candidate_set = 
-                get_unit_candidate_masks(board, r, c, UnitMode::Box);
-            
-            // Collect all indices where value is a candidate. Return 10 from the map since it needs to be of type usize
-            for value in 0..9 {
-                let indices: Vec<usize> = candidate_set
-                    .iter()
-                    .map(|&(n, b)| { if b[value] {n} else {10} } )
-                    .filter(|&n| n < 10)
-                    .collect();
-                if let Some((index, mode)) = detect_lines_in_pointing_set(&indices) {
-                    match mode {
-                        // let row = r + i / 3;
-                        // let col = c + i % 3;
-                        UnitMode::Row => {
-                            let row = r + index / 3;
-                            for col in 0..9 {
-                                // skip the columns of the current box
-                                if [c, c+1, c+2].contains(&col) {
-                                    continue;
-                                }
-                                if let Cell::Candidates(board_mask) = &mut board[row][col] {
-                                    if board_mask[value] {
-                                        board_mask[value] = false;
-                                        change = true;
-                                    }
-                                };
+    
+    for box_idx in 0..9 {
+        let candidate_set = 
+            get_unit_candidate_masks(board, box_idx, UnitMode::Box);
+        
+        // Collect all indices where value is a candidate. Return 10 from the map since it needs to be of type usize
+        for value in 0..9 {
+            let indices: Vec<usize> = candidate_set
+                .iter()
+                .map(|&(n, b)| { if b[value] {n} else {10} } )
+                .filter(|&n| n < 10)
+                .collect();
+            if let Some((index, mode)) = detect_lines_in_pointing_set(&indices) {
+                let row_start = (box_idx / 3) * 3;
+                let col_start = (box_idx % 3) * 3;
+                match mode {
+                    UnitMode::Row => {
+                        let row = row_start + index / 3;
+                        for col in 0..9 {
+                            // skip the columns of the current box
+                            if [col_start, col_start + 1, col_start + 2].contains(&col) {
+                                continue;
                             }
-                        }
-                        UnitMode::Column => {
-                            let col = c + index % 3;
-                            for row in 0..9 {
-                                // skip the rows of the current box
-                                if [r, r+1, r+2].contains(&row) {
-                                    continue;
+                            if let Cell::Candidates(board_mask) = &mut board[row][col] {
+                                if board_mask[value] {
+                                    board_mask[value] = false;
+                                    change = true;
                                 }
-                                if let Cell::Candidates(board_mask) = &mut board[row][col] {
-                                    if board_mask[value] {
-                                        board_mask[value] = false;
-                                        change = true;
-                                    }
-                                };
-                            }
+                            };
                         }
-                        _ => {}
                     }
-                };
-            }
+                    UnitMode::Column => {
+                        let col = col_start + index % 3;
+                        for row in 0..9 {
+                            // skip the rows of the current box
+                            if [row_start, row_start + 1, row_start + 2].contains(&row) {
+                                continue;
+                            }
+                            if let Cell::Candidates(board_mask) = &mut board[row][col] {
+                                if board_mask[value] {
+                                    board_mask[value] = false;
+                                    change = true;
+                                }
+                            };
+                        }
+                    }
+                    _ => {}
+                }
+            };
         }
     }
+
     change
 }
 
