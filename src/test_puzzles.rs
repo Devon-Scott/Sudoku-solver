@@ -1,5 +1,6 @@
 use crate::types::BasicGrid;
 
+// Test files in `data` are sourced from
 // https://github.com/grantm/sudoku-exchange-puzzle-bank
 
 // Sampled from the Sudoku app on my phone
