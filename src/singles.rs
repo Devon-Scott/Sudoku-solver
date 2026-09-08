@@ -58,7 +58,7 @@ pub fn solve_hidden_singles(board: &mut Board) -> bool {
     // For row
     for row in 0..9 {
         let candidate_set: Vec<(usize, BitMask)> = 
-            get_unit_candidate_masks(board, row, 0, UnitMode::Row);
+            get_unit_candidate_masks(board, row, UnitMode::Row);
         let results = get_hidden_singles_from_masks(&candidate_set);
         for (idx, value) in results {
             board[row][idx] = Cell::Value(value);
@@ -74,7 +74,7 @@ pub fn solve_hidden_singles(board: &mut Board) -> bool {
     // For col
     for col in 0..9 {
         let candidate_set: Vec<(usize, BitMask)> = 
-            get_unit_candidate_masks(board, 0, col, UnitMode::Column); 
+            get_unit_candidate_masks(board, col, UnitMode::Column); 
         let results = get_hidden_singles_from_masks(&candidate_set);
         for (idx, value) in results {
             board[idx][col] = Cell::Value(value);
@@ -88,23 +88,23 @@ pub fn solve_hidden_singles(board: &mut Board) -> bool {
     }
     
     // For box
-    for r in [0,3,6] {
-        for c in [0,3,6] {
-            let  candidate_set: Vec<(usize, BitMask)> = 
-                get_unit_candidate_masks(board, r, c, UnitMode::Box);
-            let results = get_hidden_singles_from_masks(&candidate_set);
-            for (idx, value) in results {
-                let row = r + idx / 3;
-                let col = c + idx % 3;
-                board[row][col] = Cell::Value(value);
-                change = true;
-                local_change = true;
-            } 
-            if local_change {
-                eliminate_candidates(board);
-            }
-            local_change = false;
+    for box_idx in 0..9 {
+        let  candidate_set: Vec<(usize, BitMask)> = 
+            get_unit_candidate_masks(board, box_idx, UnitMode::Box);
+        let results = get_hidden_singles_from_masks(&candidate_set);
+        for (idx, value) in results {
+            let row_start = (box_idx / 3) * 3;
+            let col_start = (box_idx % 3) * 3;
+            let row = row_start + idx / 3;
+            let col = col_start + idx % 3;
+            board[row][col] = Cell::Value(value);
+            change = true;
+            local_change = true;
+        } 
+        if local_change {
+            eliminate_candidates(board);
         }
+        local_change = false;
     }
     
     change
