@@ -1,10 +1,18 @@
 use crate::types::*;
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum UnitMode {
     Row,
     Column,
     Box 
+}
+
+impl UnitMode {
+    pub const LIST: [UnitMode; 3] = [
+        UnitMode::Row,
+        UnitMode::Column,
+        UnitMode::Box
+    ];
 }
 
 // Returns a vector of bitmasks and their corresponding index 
@@ -47,6 +55,37 @@ pub fn get_unit_candidate_masks(board: &Board, index: usize, mode: UnitMode)
         }
     }
     candidate_set
+}
+
+pub fn get_unit(board: &Board, index: usize, mode: UnitMode) -> [Cell; 9] {
+    debug_assert!(index < 9);
+    let mut result = [Cell::Empty; 9];
+    match mode {
+        UnitMode::Row => {
+            for c in 0..9 {
+                result[c] = board[index][c];
+            }
+        }
+        UnitMode::Column => {
+            for r in 0..9 {
+                result[r] = board[r][index];
+            }
+        }
+        UnitMode::Box => {
+            let row_start = (index / 3) * 3;
+            let col_start = (index % 3) * 3;
+            let mut idx = 0;
+            for r in 0..3 {
+                for c in 0..3 {
+                    let r_idx = r + row_start;
+                    let c_idx = c + col_start;
+                    result[idx] = board[r_idx][c_idx];
+                    idx += 1;
+                }
+            }
+        }
+    }
+    result
 }
 
 // The number of masks, and their indices, should equal the numbers returned 

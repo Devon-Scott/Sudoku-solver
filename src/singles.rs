@@ -19,95 +19,48 @@ pub fn solve_naked_singles(board: &mut Board) -> bool {
     change
 }
 
-// Takes in a vector of indexes and bitmasks, and if there are hidden singles at any index,
-// returns a vector of those indices, with their corresponding hidden single value
-fn get_hidden_singles_from_masks(candidate_set: &Vec<(usize, BitMask)>) -> Vec<(usize, i16)> {
-    let mut result: Vec<(usize, i16)> = Vec::new();
+fn solve_hidden_singles_in_unit(set: &mut [Cell; 9]) {
     for value in 0..9 {
         let mut seen = false;
         let mut single = true;
         let mut idx = 10;
-        for mask in candidate_set {
-            if mask.1[value] && !seen {
-                seen = true;
-                idx = mask.0;
-            } 
-            else if mask.1[value] && seen {
-                single = false;
-            }
+        for i in 0..9 {
+            if let Cell::Candidates(mask) = set[i] {
+                if mask[value] && !seen {
+                    seen = true;
+                    idx = i;
+                } 
+                else if mask[value] && seen {
+                    single = false;
+                }
+            }            
         }
         if seen && single {
-            result.push((idx, (value + 1) as i16));
+            set[idx] = Cell::Value((value as i16) + 1);
         }
     }
-
-    // If there end up being duplicate indices, don't keep any of them
-    let mut count = [0; 9];
-    for element in &result {
-        count[element.0] += 1;
-    }
-    result.retain(|&pair| count[pair.0] == 1);
-
-    result
 }
 
 pub fn solve_hidden_singles(board: &mut Board) -> bool {
     let mut change = false;
-    let mut local_change = false;
 
-    // For row
-    for row in 0..9 {
-        let candidate_set: Vec<(usize, BitMask)> = 
-            get_unit_candidate_masks(board, row, UnitMode::Row);
-        let results = get_hidden_singles_from_masks(&candidate_set);
-        for (idx, value) in results {
-            board[row][idx] = Cell::Value(value);
-            change = true;
-            local_change = true;
-        } 
-        if local_change {
-            eliminate_candidates(board);
+    for mode in &UnitMode::LIST {
+        for index in 0..9 {
+            let mut candidate_set = 
+                get_unit(board, index, *mode);
+            solve_hidden_singles_in_unit(&mut candidate_set);
+            if set_unit(board, index, &candidate_set, *mode) {
+                eliminate_candidates(board);
+                change = true;
+            }
         }
-        local_change = false;
     }
 
-    // For col
-    for col in 0..9 {
-        let candidate_set: Vec<(usize, BitMask)> = 
-            get_unit_candidate_masks(board, col, UnitMode::Column); 
-        let results = get_hidden_singles_from_masks(&candidate_set);
-        for (idx, value) in results {
-            board[idx][col] = Cell::Value(value);
-            change = true;
-            local_change = true;
-        } 
-        if local_change {
-            eliminate_candidates(board);
-        }
-        local_change = false; 
-    }
-    
-    // For box
-    for box_idx in 0..9 {
-        let  candidate_set: Vec<(usize, BitMask)> = 
-            get_unit_candidate_masks(board, box_idx, UnitMode::Box);
-        let results = get_hidden_singles_from_masks(&candidate_set);
-        for (idx, value) in results {
-            let row_start = (box_idx / 3) * 3;
-            let col_start = (box_idx % 3) * 3;
-            let row = row_start + idx / 3;
-            let col = col_start + idx % 3;
-            board[row][col] = Cell::Value(value);
-            change = true;
-            local_change = true;
-        } 
-        if local_change {
-            eliminate_candidates(board);
-        }
-        local_change = false;
-    }
-    
     change
+}
+
+pub fn solve_singles(board: &mut Board) -> bool{
+    solve_hidden_singles(board) | solve_naked_singles(board)
 }
 
 #[cfg(test)]
@@ -122,33 +75,15 @@ mod tests {
         result
     }
 
-    fn candidate_board() -> Board {
+    fn candidate_board(b: bool) -> Board {
         std::array::from_fn(|_| {
-            std::array::from_fn(|_| Cell::Candidates([false; 9]))
+            std::array::from_fn(|_| Cell::Candidates([b; 9]))
         })
     }
 
     #[test]
-    fn hidden_single_helper_returns_value_and_cell_index() {
-        let candidates = vec![
-            (2, mask(&[1, 3])),
-            (5, mask(&[1, 7])),
-            (8, mask(&[1, 3])),
-        ];
-
-        assert_eq!(get_hidden_singles_from_masks(&candidates), vec![(5, 7)]);
-    }
-
-    #[test]
-    fn hidden_single_helper_ignores_values_seen_more_than_once() {
-        let candidates = vec![(0, mask(&[2, 8])), (4, mask(&[2, 8]))];
-
-        assert!(get_hidden_singles_from_masks(&candidates).is_empty());
-    }
-
-    #[test]
     fn solves_a_hidden_single_in_a_row() {
-        let mut board = candidate_board();
+        let mut board = candidate_board(false);
         board[3][1] = Cell::Candidates(mask(&[2, 5]));
         board[3][4] = Cell::Candidates(mask(&[2, 8]));
         board[3][7] = Cell::Candidates(mask(&[2, 5]));
@@ -159,7 +94,7 @@ mod tests {
 
     #[test]
     fn solves_a_hidden_single_in_a_column() {
-        let mut board = candidate_board();
+        let mut board = candidate_board(false);
         board[1][6] = Cell::Candidates(mask(&[3, 4]));
         board[4][6] = Cell::Candidates(mask(&[3, 9]));
         board[7][6] = Cell::Candidates(mask(&[3, 4]));
@@ -169,21 +104,8 @@ mod tests {
     }
 
     #[test]
-    fn helper_avoids_conflicting_singles_for_the_same_cell() {
-        let candidates = vec![
-            (0, mask(&[1, 2, 3])),
-            (1, mask(&[3, 4, 6])),
-            (2, mask(&[3, 4, 6])),
-        ];
-
-        let results = get_hidden_singles_from_masks(&candidates);
-
-        assert!(results.len() == 0);
-    }
-
-    #[test]
     fn solves_hidden_single_at_correct_position_in_box() {
-        let mut board = candidate_board();
+        let mut board = candidate_board(false);
 
         // Candidate 7 appears only at box-local index 1: global (0, 1).
         board[0][0] = Cell::Candidates(mask(&[2, 3]));

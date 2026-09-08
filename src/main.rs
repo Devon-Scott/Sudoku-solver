@@ -141,18 +141,17 @@ fn main() -> Result<(), io::Error>{
     let mut c = eliminate_candidates(&mut board);
     while c {
         c = false;
-        c |= eliminate_candidates(&mut board);
-        c |= solve_naked_singles(&mut board);
-        c |= eliminate_candidates(&mut board);
-        c |= solve_hidden_singles(&mut board);
-        c |= eliminate_candidates(&mut board);
+        c |= solve_singles(&mut board);
         c |= determine_naked_doubles(&mut board);
         c |= determine_hidden_doubles(&mut board);
+        c |= solve_singles(&mut board);
         c |= eliminate_pointing_sets(&mut board);
         c |= box_line_reduction(&mut board, helpers::UnitMode::Row);
         c |= box_line_reduction(&mut board, helpers::UnitMode::Column);
+        c |= solve_singles(&mut board);
         c |= determine_naked_subsets(&mut board);
         c |= swordfish_elimination(&mut board);
+        c |= solve_singles(&mut board);
         if c {
             iter += 1;
         }
