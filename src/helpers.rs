@@ -1,6 +1,6 @@
 use crate::types::*;
 
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum UnitMode {
     Row,
     Column,
@@ -8,30 +8,31 @@ pub enum UnitMode {
 }
 
 // Returns a vector of bitmasks and their corresponding index 
-// in the row, column, or box that (row, col) belongs too
+// in the indexed unit (row, col, or box) that they belong to
 // Boxes are indexed left to right, then top to bottom
-pub fn get_unit_candidate_masks(board: &Board, row: usize, col: usize, mode: UnitMode)
+pub fn get_unit_candidate_masks(board: &Board, index: usize, mode: UnitMode)
 -> Vec<(usize, BitMask)> {
+    debug_assert!(index < 9);
     let mut candidate_set: Vec<(usize, BitMask)> = Vec::new();
     match mode {
         UnitMode::Row => {
             for c in 0..9 {
-                if let Cell::Candidates(bits) = board[row][c] {
+                if let Cell::Candidates(bits) = board[index][c] {
                     candidate_set.push((c, bits));
                 }
             }
         }
         UnitMode::Column => {
             for r in 0..9 {
-                if let Cell::Candidates(bits) = board[r][col] {
+                if let Cell::Candidates(bits) = board[r][index] {
                     candidate_set.push((r, bits));
                 }
             }
         }
         UnitMode::Box => {
             // Truncated division: e.g. row in [3, 4, 5] -> r = 3
-            let row_start = (row / 3) * 3;
-            let col_start = (col / 3) * 3;
+            let row_start = (index / 3) * 3;
+            let col_start = (index % 3) * 3;
             let mut idx = 0;
             for r in 0..3 {
                 for c in 0..3 {
@@ -48,7 +49,13 @@ pub fn get_unit_candidate_masks(board: &Board, row: usize, col: usize, mode: Uni
     candidate_set
 }
 
+// The number of masks should equal the number returned from a corresponding
+// call to get_unit_candidate_masks
+// Each index in (index, bitmask) is relative to the unit being referenced
 pub fn set_unit_candidate_masks(board: &mut Board, index: usize, masks: &[(usize, BitMask)], mode: UnitMode) -> bool {
+    debug_assert!(masks.len() <= 9);
+    debug_assert!(masks.iter().all(|(unit_index, _)| *unit_index < 9));
+    debug_assert!(index < 9);
     let mut change = false;
     match mode {
         UnitMode::Row => {
@@ -99,7 +106,8 @@ pub fn set_unit_candidate_masks(board: &mut Board, index: usize, masks: &[(usize
     change
 }
 
-pub fn set_unit(board: &mut Board, index: usize, masks: &[Cell], mode: UnitMode) -> bool {
+pub fn set_unit(board: &mut Board, index: usize, masks: &[Cell; 9], mode: UnitMode) -> bool {
+    debug_assert!(index < 9);
     let mut change = false;
     match mode {
         UnitMode::Row => {
