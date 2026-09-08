@@ -46,9 +46,10 @@ fn generate_naked_subsets(candidate_set: &Vec<(usize, BitMask)>, size: usize) ->
 pub fn determine_naked_subsets(board: &mut Board) -> bool {
     let mut change = false;
 
+    // For Row
     for row in 0..9 {
         let candidate_set = 
-            get_unit_candidate_masks(board, row, 0, UnitMode::Row);
+            get_unit_candidate_masks(board, row, UnitMode::Row);
         
         for k in [2, 3, 4] {
             let combinations = generate_naked_subsets(&candidate_set, k);
@@ -81,9 +82,10 @@ pub fn determine_naked_subsets(board: &mut Board) -> bool {
         }
     }
     
+    // For Col
     for col in 0..9 {
         let candidate_set = 
-            get_unit_candidate_masks(board, 0, col, UnitMode::Column);
+            get_unit_candidate_masks(board, col, UnitMode::Column);
         
         for k in [2, 3, 4] {
             let combinations = generate_naked_subsets(&candidate_set, k);
@@ -116,45 +118,46 @@ pub fn determine_naked_subsets(board: &mut Board) -> bool {
         }
     }
 
-    for r in [0, 3, 6] {
-        for c in [0, 3, 6] {
-            let candidate_set = 
-                get_unit_candidate_masks(board, r, c, UnitMode::Box);
+    // For Box
+    for box_idx in 0..9 {
+        let candidate_set = 
+            get_unit_candidate_masks(board, box_idx, UnitMode::Box);
 
-            for k in [2, 3, 4] {
-                let combinations = generate_naked_subsets(&candidate_set, k);
-                if combinations.len() == 0 {
-                    continue;
+        for k in [2, 3, 4] {
+            let combinations = generate_naked_subsets(&candidate_set, k);
+            if combinations.len() == 0 {
+                continue;
+            }
+            let mut indices: Vec<usize> = Vec::new();
+            for combo in combinations {
+                debug_assert!(combo.len() == k);
+                let mut result: BitMask = [false; 9];
+                for (index, mask) in combo {
+                    // We don't want to change the indices of the combo in consideration
+                    indices.push(index);
+                    result.or(&mask);
                 }
-                let mut indices: Vec<usize> = Vec::new();
-                for combo in combinations {
-                    debug_assert!(combo.len() == k);
-                    let mut result: BitMask = [false; 9];
-                    for (index, mask) in combo {
-                        // We don't want to change the indices of the combo in consideration
-                        indices.push(index);
-                        result.or(&mask);
-                    }
-                    if result.bits_set() == k {
-                        for row_idx in 0..3 {
-                            for col_idx in 0..3 {
-                                let idx = row_idx * 3 + col_idx;
-                                if indices.contains(&idx) {
-                                    continue;
-                                }
-                                let row = r + row_idx;
-                                let col = c + col_idx;
-                                if let Cell::Candidates(ref mut mask) = board[row][col] {
-                                    if mask.remove(&result) {
-                                        change = true;
-                                        debug_assert!(mask.bits_set() > 0);
-                                    }
+                if result.bits_set() == k {
+                    for row_idx in 0..3 {
+                        for col_idx in 0..3 {
+                            let idx = row_idx * 3 + col_idx;
+                            if indices.contains(&idx) {
+                                continue;
+                            }
+                            let row_start = (box_idx / 3) * 3;
+                            let col_start = (box_idx % 3) * 3;
+                            let row = row_start + row_idx;
+                            let col = col_start + col_idx;
+                            if let Cell::Candidates(ref mut mask) = board[row][col] {
+                                if mask.remove(&result) {
+                                    change = true;
+                                    debug_assert!(mask.bits_set() > 0);
                                 }
                             }
                         }
                     }
-                    indices.clear();
                 }
+                indices.clear();
             }
         }
     }
