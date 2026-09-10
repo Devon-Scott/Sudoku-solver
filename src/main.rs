@@ -3,6 +3,7 @@ mod candidates;
 mod helpers;
 mod pairs;
 mod parser;
+mod perf_tester;
 mod singles;
 mod subsets;
 mod swordfish;
@@ -14,35 +15,15 @@ use std::time::Instant;
 
 use crate::box_line::*;
 use crate::candidates::*;
-use crate::helpers::{UnitMode, get_unit};
+use crate::helpers::*;
 use crate::pairs::*;
 use crate::parser::*;
+use crate::perf_tester::{Difficulty, test_performance};
 use crate::singles::*;
 use crate::subsets::*;
 use crate::swordfish::*;
 use crate::test_puzzles::*;
 use crate::types::*;
-
-fn verify_board(board: &Board) -> bool {
-    for mode in UnitMode::LIST {
-        for index in 0..9 {
-            let set = get_unit(board, index, mode);
-            let mut seen: BitMask = [false; 9];
-            for cell in set {
-                if let Cell::Value(num) = cell {
-                    if seen[num - 1] {
-                        return false
-                    }
-                    seen[num - 1] = true;
-                }
-                else {
-                    return false;
-                }
-            }
-        }
-    }
-    true
-}
 
 fn verify(grid: &BasicGrid) -> bool {
     for row in 0..9 {
@@ -111,33 +92,30 @@ fn make_candidate_sets(board: &mut Board) {
         }
     }
 }
-fn grid_to_cells(grid: &BasicGrid) -> Board {
-    grid.map(|row| {
-        row.map(|val| match val {
-            0 => Cell::Empty,
-            n => Cell::Value(n)
-        })
-    })
-}
-
-fn cells_to_grid(board: &Board) -> BasicGrid {
-    let mut result: BasicGrid = [[0; 9]; 9];
-    for row in 0..9 {
-        for col in 0..9 {
-            result[row][col] = match &board[row][col] {
-                Cell::Value(num) => *num,
-                _ => 0
-            };
-        }
-    }
-    result
-}
 
 fn main() -> Result<(), io::Error>{
     let args: Vec<String> = env::args().collect();
 
+    if args.len() > 1 && &args[1] == "--perf" {
+        let mode = if let Some(arg) = args.get(2) {
+            match arg.as_str() {
+                "easy" => Difficulty::Easy,
+                "medium" => Difficulty::Medium,
+                "hard" => Difficulty::Hard,
+                "diablo" => Difficulty::Diabolical,
+                _ => Difficulty::Easy
+            }
+        }
+        else {
+            Difficulty::Easy
+        };
+        
+        test_performance(&mode);
+        return Ok(());
+    }
+
     let mut board = if args.len() > 1 && &args[1] == "--test" {
-        let grid: BasicGrid = TEST_GRID;
+        let grid: BasicGrid = MED_FAIL;
         let board: Board = grid_to_cells(&grid);
         board
     }
@@ -154,7 +132,7 @@ fn main() -> Result<(), io::Error>{
         .filter(|&&cell| matches!(cell, Cell::Empty))
         .count();
     println!("Input board ({empty_count} empty cells):");
-    println!("{}", Grid(cells_to_grid(&board)));
+    println!("{}", cells_to_grid(&board));
 
     make_candidate_sets(&mut board);
 
@@ -183,9 +161,9 @@ fn main() -> Result<(), io::Error>{
     }
     let duration = start.elapsed().as_micros();
     println!("Board after current algorithm");
-    println!("{}", Grid(cells_to_grid(&board)));
+    println!("{}", cells_to_grid(&board));
 
-    if verify(&cells_to_grid(&board)) {
+    if verify(&cells_to_grid(&board).0) {
         if iter == 1 {
             println!("Sudoku Solved in {duration} µs,\nusing {iter} iteration of constraint propagation!");
         }
@@ -199,6 +177,9 @@ fn main() -> Result<(), io::Error>{
             .filter(|&&cell| matches!(cell, Cell::Candidates(_)))
             .count();
         println!("Unable to solve. {empty_count} cells remain unsolved. Need more heuristics");
+        for row in [3,4,5] {
+            println!("{:?}", board[row][4])
+        }
     }
     return Ok(())
 
@@ -260,7 +241,7 @@ mod tests {
                     assert!(
                         bits.bits_set() > 0,
                         "cell ({row}, {col}) has no remaining candidates after {phase}: {:?}\n{}",
-                        board[row][col], Grid(cells_to_grid(board))
+                        board[row][col], cells_to_grid(board)
                     );
                 }
             }

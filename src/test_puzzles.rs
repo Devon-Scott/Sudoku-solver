@@ -15,6 +15,17 @@ pub const TEST_GRID: BasicGrid = [
     [0, 6, 1, 0, 8, 3, 0, 4, 0],
     [4, 0, 0, 5, 0, 0, 0, 6, 0]];
 
+pub const MED_FAIL: BasicGrid = [
+    [0, 0, 0, 5, 0, 1, 7, 0, 9],
+    [9, 0, 0, 4, 0, 3, 6, 0, 0],
+    [1, 0, 8, 7, 9, 0, 0, 4, 0],
+    [5, 2, 0, 0, 0, 0, 8, 0, 0],
+    [8, 0, 0, 0, 0, 0, 0, 0, 6],
+    [3, 0, 9, 8, 0, 0, 0, 7, 4],
+    [0, 9, 0, 0, 0, 4, 0, 0, 8],
+    [0, 0, 1, 3, 0, 8, 9, 6, 0],
+    [6, 8, 3, 1, 0, 9, 4, 0, 0]];
+
 // Sourced from https://sandiway.arizona.edu/sudoku/examples.html
 // Current algorithm leaves 27 cells unsolved
 pub const NOT_FUN: BasicGrid = [

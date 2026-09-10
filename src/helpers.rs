@@ -181,3 +181,46 @@ pub fn set_unit(board: &mut Board, index: usize, masks: &[Cell; 9], mode: UnitMo
     }
     change
 }
+
+pub fn verify_board(board: &Board) -> bool {
+    for mode in UnitMode::LIST {
+        for index in 0..9 {
+            let set = get_unit(board, index, mode);
+            let mut seen: BitMask = [false; 9];
+            for cell in set {
+                if let Cell::Value(num) = cell {
+                    if seen[num - 1] {
+                        return false
+                    }
+                    seen[num - 1] = true;
+                }
+                else {
+                    return false;
+                }
+            }
+        }
+    }
+    true
+}
+
+pub fn grid_to_cells(grid: &BasicGrid) -> Board {
+    grid.map(|row| {
+        row.map(|val| match val {
+            0 => Cell::Candidates([true;9]),
+            n => Cell::Value(n)
+        })
+    })
+}
+
+pub fn cells_to_grid(board: &Board) -> Grid {
+    let mut result: BasicGrid = [[0; 9]; 9];
+    for row in 0..9 {
+        for col in 0..9 {
+            result[row][col] = match &board[row][col] {
+                Cell::Value(num) => *num,
+                _ => 0
+            };
+        }
+    }
+    Grid(result)
+}
