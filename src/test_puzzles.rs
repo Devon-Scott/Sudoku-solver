@@ -15,17 +15,6 @@ use crate::types::BasicGrid;
 //     [0, 6, 1, 0, 8, 3, 0, 4, 0],
 //     [4, 0, 0, 5, 0, 0, 0, 6, 0]];
 
-pub const MED_FAIL: BasicGrid = [
-    [0, 0, 0, 5, 0, 1, 7, 0, 9],
-    [9, 0, 0, 4, 0, 3, 6, 0, 0],
-    [1, 0, 8, 7, 9, 0, 0, 4, 0],
-    [5, 2, 0, 0, 0, 0, 8, 0, 0],
-    [8, 0, 0, 0, 0, 0, 0, 0, 6],
-    [3, 0, 9, 8, 0, 0, 0, 7, 4],
-    [0, 9, 0, 0, 0, 4, 0, 0, 8],
-    [0, 0, 1, 3, 0, 8, 9, 6, 0],
-    [6, 8, 3, 1, 0, 9, 4, 0, 0]];
-
 // Sourced from https://sandiway.arizona.edu/sudoku/examples.html
 // Current algorithm leaves 27 cells unsolved
 pub const NOT_FUN: BasicGrid = [
@@ -39,6 +28,7 @@ pub const NOT_FUN: BasicGrid = [
     [5, 0, 0, 0, 0, 9, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 4, 0]];
 
+#[cfg(test)]
 pub const NOT_FUN_SOLUTION: BasicGrid = [
     [1, 2, 6, 4, 3, 7, 9, 5, 8],
     [8, 9, 5, 6, 2, 1, 4, 7, 3],
@@ -49,6 +39,19 @@ pub const NOT_FUN_SOLUTION: BasicGrid = [
     [2, 6, 9, 3, 1, 4, 7, 8, 5],
     [5, 4, 8, 7, 6, 9, 2, 3, 1],
     [7, 3, 1, 8, 5, 2, 6, 4, 9]];
+
+    
+#[cfg(test)]
+pub const MED_FAIL: BasicGrid = [
+    [0, 0, 0, 5, 0, 1, 7, 0, 9],
+    [9, 0, 0, 4, 0, 3, 6, 0, 0],
+    [1, 0, 8, 7, 9, 0, 0, 4, 0],
+    [5, 2, 0, 0, 0, 0, 8, 0, 0],
+    [8, 0, 0, 0, 0, 0, 0, 0, 6],
+    [3, 0, 9, 8, 0, 0, 0, 7, 4],
+    [0, 9, 0, 0, 0, 4, 0, 0, 8],
+    [0, 0, 1, 3, 0, 8, 9, 6, 0],
+    [6, 8, 3, 1, 0, 9, 4, 0, 0]];
 
 // // https://abcnews.com/blogs/headlines/2012/06/can-you-solve-the-hardest-ever-sudoku
 // pub const INKALA: BasicGrid = [
