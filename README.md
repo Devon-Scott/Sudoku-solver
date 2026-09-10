@@ -4,8 +4,18 @@ There are a number of heuristics used in Sudoku that I have implemented, and pla
 
 In its current state, it can solve some moderately high difficulty puzzles for a human:
 
-![Screenshot showing solved puzzle](./Screenshots/Solver.png)
+<p align="center">
+  <img src="./Screenshots/Solver.png" alt="Screenshot showing solved puzzle" width="500">
+</p>
+
+I built a performance tester using Rayon to evaluate performance on a huge dataset from [The Sudoku Exchange Puzzle Bank](https://github.com/grantm/sudoku-exchange-puzzle-bank)
+
+<p align="center">
+  <img src="./Screenshots/Perf-Tester.png" alt="Screenshot showing performance tester" width="500">
+</p>
 
 I have also built a TUI input parser using Crossterm and Ratatui:
 
-![Screenshot showing TUI input](./Screenshots/Parser.png)
+<p align="center">
+  <img src="./Screenshots/Parser.png" alt="Screenshot showing TUI input" width="500">
+</p>
