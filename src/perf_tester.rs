@@ -1,5 +1,4 @@
-use core::num;
-use std::{fs, env};
+use std::fs;
 use std::time::Instant;
 
 use tqdm::tqdm;
@@ -18,7 +17,6 @@ pub enum Difficulty {
     Medium, 
     Hard,
     Diabolical,
-    All
 }
 
 fn parse_line(line: &str) -> (Board, f64) {
@@ -87,9 +85,6 @@ pub fn test_performance(difficulty: &Difficulty) {
         Difficulty::Medium => "medium",
         Difficulty::Hard => "hard",
         Difficulty::Diabolical => "diabolical",
-
-        // Solver is not strong enough to bother running diabolical or all
-        Difficulty::All => "easy"
     };
     let path = format!("data/{diff_text}.txt");
     

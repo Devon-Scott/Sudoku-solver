@@ -115,7 +115,7 @@ fn main() -> Result<(), io::Error>{
     }
 
     let mut board = if args.len() > 1 && &args[1] == "--test" {
-        let grid: BasicGrid = MED_FAIL;
+        let grid: BasicGrid = NOT_FUN;
         let board: Board = grid_to_cells(&grid);
         board
     }
@@ -177,9 +177,6 @@ fn main() -> Result<(), io::Error>{
             .filter(|&&cell| matches!(cell, Cell::Candidates(_)))
             .count();
         println!("Unable to solve. {empty_count} cells remain unsolved. Need more heuristics");
-        for row in [3,4,5] {
-            println!("{:?}", board[row][4])
-        }
     }
     return Ok(())
 

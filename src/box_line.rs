@@ -1,5 +1,3 @@
-use ratatui::layout::Rows;
-
 use crate::helpers::*;
 use crate::types::*;
 
