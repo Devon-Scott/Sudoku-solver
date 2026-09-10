@@ -188,43 +188,15 @@ mod tests {
     use super::*;
 
     fn assert_no_duplicate_values(board: &Board, phase: &str) {
-        for row in 0..9 {
-            let mut seen = [false; 9];
-            for col in 0..9 {
-                if let Cell::Value(value) = board[row][col] {
-                    let idx = (value - 1) as usize;
-                    assert!(!seen[idx], "duplicate {value} in row {row} after {phase}");
-                    seen[idx] = true;
-                }
-            }
-        }
-
-        for col in 0..9 {
-            let mut seen = [false; 9];
-            for row in 0..9 {
-                if let Cell::Value(value) = board[row][col] {
-                    let idx = (value - 1) as usize;
-                    assert!(!seen[idx], "duplicate {value} in column {col} after {phase}");
-                    seen[idx] = true;
-                }
-            }
-        }
-
-        for box_row in 0..3 {
-            for box_col in 0..3 {
+        for mode in UnitMode::LIST {
+            for index in 0..9 {
+                let cells = get_unit(board, index, mode);
                 let mut seen = [false; 9];
-                for row_offset in 0..3 {
-                    for col_offset in 0..3 {
-                        let row = box_row * 3 + row_offset;
-                        let col = box_col * 3 + col_offset;
-                        if let Cell::Value(value) = board[row][col] {
-                            let idx = (value - 1) as usize;
-                            assert!(
-                                !seen[idx],
-                                "duplicate {value} in box ({box_row}, {box_col}) after {phase}"
-                            );
-                            seen[idx] = true;
-                        }
+                for cell in cells {
+                    if let Cell::Value(value) = cell {
+                        let idx = (value - 1) as usize;
+                        assert!(!seen[idx], "duplicate {value} in {:?} after {phase}", mode);
+                        seen[idx] = true;
                     }
                 }
             }
@@ -289,7 +261,11 @@ mod tests {
             changed |= solve_naked_singles(&mut board);
             assert_no_duplicate_values(&board, "naked singles");
             assert_no_empty_candidates(&board, "naked singles");
-            assert_solution_still_possible(&board, &NOT_FUN_SOLUTION, "naked singles");
+            assert_solution_still_possible(
+                &board, 
+                &NOT_FUN_SOLUTION, 
+                "naked singles"
+            );
 
             changed |= eliminate_candidates(&mut board);
             assert_no_duplicate_values(&board, "elimination after naked singles");
