@@ -6,4 +6,5 @@ edition = "2024"
 [dependencies]
 ratatui = "0.29"
 crossterm = "0.28"
-tqdm = "0.8.1"
+rayon = "1.12.0"
+indicatif = { version = "0.18.6", features = ["rayon"] }

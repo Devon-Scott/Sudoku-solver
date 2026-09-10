@@ -1,7 +1,8 @@
 use std::fs;
 use std::time::Instant;
 
-use tqdm::tqdm;
+use indicatif::{ProgressBar, ProgressStyle, ParallelProgressIterator};
+use rayon::prelude::*;
 
 use crate::box_line::*;
 use crate::candidates::*;
@@ -19,7 +20,13 @@ pub enum Difficulty {
     Diabolical,
 }
 
-fn parse_line(line: &str) -> (Board, f64) {
+#[derive(Clone, Copy)]
+struct Data {
+    board: Board,
+    diff: f64
+}
+
+fn parse_line(line: &str) -> Data {
     let mut board: Board = [[Cell::Empty; 9]; 9];
     let values: Vec<&str> = line.split_whitespace().collect();
     let mut idx = 0;
@@ -37,31 +44,33 @@ fn parse_line(line: &str) -> (Board, f64) {
     }
 
     let diff: f64 = values[2].parse().unwrap(); 
-    (board, diff)
+    Data{board, diff}
 }
 
 fn count_unsolved_cells(board: &Board) -> usize {
     board.iter().flatten().filter(|&x| matches!(x, Cell::Candidates(_))).count()
 }
 
-fn solve(board: &mut Board) -> Option<u128>{
+fn solve(data: &mut Data) -> (Option<u128>, Data) {
     let start = Instant::now();
 
+    let mut board = &mut (data.board);
+
     // let mut iter = 0;
-    let mut c = eliminate_candidates(board);
+    let mut c = eliminate_candidates(&mut board);
     while c {
         c = false;
-        c |= solve_singles(board);
-        c |= determine_naked_doubles(board);
-        c |= determine_hidden_doubles(board);
-        c |= solve_singles(board);
-        c |= eliminate_pointing_sets(board);
-        c |= box_line_reduction(board, UnitMode::Row);
-        c |= box_line_reduction(board, UnitMode::Column);
-        c |= solve_singles(board);
-        c |= determine_naked_subsets(board);
-        c |= swordfish_elimination(board);
-        c |= solve_singles(board);
+        c |= solve_singles(&mut board);
+        c |= determine_naked_doubles(&mut board);
+        c |= determine_hidden_doubles(&mut board);
+        c |= solve_singles(&mut board);
+        c |= eliminate_pointing_sets(&mut board);
+        c |= box_line_reduction(&mut board, UnitMode::Row);
+        c |= box_line_reduction(&mut board, UnitMode::Column);
+        c |= solve_singles(&mut board);
+        c |= determine_naked_subsets(&mut board);
+        c |= swordfish_elimination(&mut board);
+        c |= solve_singles(&mut board);
         // if c {
         //     iter += 1;
         // }
@@ -72,10 +81,10 @@ fn solve(board: &mut Board) -> Option<u128>{
     let duration = start.elapsed().as_micros();
 
     if verify_board(board) {
-        return Some(duration)
+        return (Some(duration), *data)
     }
     else {
-        return None
+        return (None, *data)
     }
 }
 
@@ -91,40 +100,68 @@ pub fn test_performance(difficulty: &Difficulty) {
     let file = fs::read_to_string(path)
         .expect("File could not be found");
 
-    let mut last_failed_board = None;
-    let mut rates: Vec<u128> = Vec::new();
-    let mut fails: Vec<f64> = Vec::new();
-    let mut num_boards = 0;
-    for line in tqdm(file.lines()) {
-        let (mut board, diff) = parse_line(&line);
-        let perf = solve(&mut board);
-        if perf.is_some() {
-            rates.push(perf.unwrap());
+    let mut last_failed_board = None;    
+
+    let mut dataset: Vec<Data> = Vec::new();
+
+    for line in file.lines() {
+        dataset.push(parse_line(&line));
+    }
+    let num_boards = dataset.len();
+
+    // 1. Create a ProgressBar manually with your known length
+    let pb = ProgressBar::new(dataset.len() as u64);
+
+    // 2. Define a template containing `{per_sec}` or `{it_per_sec}`
+    pb.set_style(
+        ProgressStyle::with_template(
+            "[{elapsed_precise}] [{bar:30.green/green}] {pos}/{len} ({per_sec})"
+        )
+        .unwrap()
+        .progress_chars("#>-")
+    );
+        
+    println!("Solving {num_boards} boards of {diff_text} difficulty");
+    let results: Vec<(Option<u128>, Data)> = dataset
+        .par_iter()
+        .progress_with(pb.clone())
+        .map(|&(mut item)| solve(&mut item))
+        .collect();
+    pb.finish();
+    
+    
+
+    let mut fails: usize = 0;
+    let mut solved: usize = 0;
+    let mut fail_sum: f64 = 0.0;
+    let mut rate_sum: u128 = 0;
+    for (rate, data) in results {
+        if rate.is_some() {
+            solved += 1;
+            rate_sum += rate.unwrap();
         }
         else {
-            fails.push(diff);
-            last_failed_board = Some(board.clone());
+            fails += 1;
+            fail_sum += data.diff;
+            last_failed_board = Some(data.board);
         }
-        num_boards += 1;
     }
 
-    if rates.is_empty() {
+
+    if rate_sum == 0 {
         println!("No reported successes");
     } else {
-        let sum: u128 = rates.iter().sum();
-        let avg_rate = sum as f64 / rates.len() as f64;
-        println!("Average completion speed: {avg_rate} µs");
+        let avg_rate = rate_sum as f64 / solved as f64;
+        println!("Average completion speed: {avg_rate:.2} µs");
     };
     
-    if fails.is_empty() {
+    if fails == 0 {
         println!("No reported failures")
     }
     else {
-        let num_fails = fails.len();
-        let sum: f64 = fails.iter().sum();
-        let avg_fail = sum as f64 / fails.len() as f64;
-        println!("Average failure difficulty: {avg_fail} across {num_fails} tests");
-        let percent = 100.0 * ((num_boards - num_fails) as f32 / num_boards as f32);
+        let avg_fail = fail_sum / fails as f64;
+        println!("Average failure difficulty: {avg_fail} across {fails} tests");
+        let percent = 100.0 * ((num_boards - fails) as f32 / num_boards as f32);
         println!("Solved {percent:.2}% of puzzles");
         println!("Last failed board:");
         let failed_board: Grid = cells_to_grid(&last_failed_board.unwrap());

@@ -111,6 +111,8 @@ fn main() -> Result<(), io::Error>{
         };
         
         test_performance(&mode);
+        test_performance(&Difficulty::Hard);
+        test_performance(&Difficulty::Diabolical);
         return Ok(());
     }
 
