@@ -195,7 +195,7 @@ mod tests {
                 for cell in cells {
                     if let Cell::Value(value) = cell {
                         let idx = (value - 1) as usize;
-                        assert!(!seen[idx], "duplicate {value} in {:?} after {phase}", mode);
+                        assert!(!seen[idx], "duplicate {value} in {:?} {index} after {phase}", mode);
                         seen[idx] = true;
                     }
                 }
