@@ -1,29 +1,6 @@
 use crate::helpers::*;
 use crate::types::*;
 
-pub fn iterate_for_subsets<T:Clone + Copy>(set: &Vec<T>, 
-                                        size: usize, 
-                                        start: usize,
-                                        subset: &mut Vec<T>,
-                                        result: &mut Vec<Vec<T>>){
-    let len = set.len();
-    let sublen = subset.len();
-    
-    if sublen == size {
-        result.push(subset.clone());
-        return
-    }
-
-    for i in start..len {
-        if (len - i) < (size - sublen){
-            break;
-        }
-        subset.push(set[i]);
-        iterate_for_subsets(set, size, i + 1, subset, result);
-        subset.pop();
-    }
-}
-
 fn generate_naked_subsets(candidate_set: &Vec<(usize, BitMask)>, size: usize) -> Vec<Vec<(usize, BitMask)>> {
     let mut result: Vec<Vec<(usize, BitMask)>> = Vec::new();
     let len = candidate_set.len();
@@ -50,6 +27,10 @@ pub fn determine_naked_subsets(board: &mut Board) -> bool {
     for row in 0..9 {
         let candidate_set = 
             get_unit_candidate_masks(board, row, UnitMode::Row);
+
+        if candidate_set.len() == 0 {
+            continue;
+        }
         
         for k in [2, 3, 4] {
             let combinations = generate_naked_subsets(&candidate_set, k);
@@ -86,6 +67,10 @@ pub fn determine_naked_subsets(board: &mut Board) -> bool {
     for col in 0..9 {
         let candidate_set = 
             get_unit_candidate_masks(board, col, UnitMode::Column);
+
+        if candidate_set.len() == 0 {
+            continue;
+        }
         
         for k in [2, 3, 4] {
             let combinations = generate_naked_subsets(&candidate_set, k);
@@ -122,6 +107,10 @@ pub fn determine_naked_subsets(board: &mut Board) -> bool {
     for box_idx in 0..9 {
         let candidate_set = 
             get_unit_candidate_masks(board, box_idx, UnitMode::Box);
+
+        if candidate_set.len() == 0 {
+            continue;
+        }
 
         for k in [2, 3, 4] {
             let combinations = generate_naked_subsets(&candidate_set, k);

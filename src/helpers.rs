@@ -15,6 +15,29 @@ impl UnitMode {
     ];
 }
 
+pub fn iterate_for_subsets<T:Clone + Copy>(set: &Vec<T>, 
+                                        size: usize, 
+                                        start: usize,
+                                        subset: &mut Vec<T>,
+                                        result: &mut Vec<Vec<T>>){
+    let len = set.len();
+    let sublen = subset.len();
+    
+    if sublen == size {
+        result.push(subset.clone());
+        return
+    }
+
+    for i in start..len {
+        if (len - i) < (size - sublen){
+            break;
+        }
+        subset.push(set[i]);
+        iterate_for_subsets(set, size, i + 1, subset, result);
+        subset.pop();
+    }
+}
+
 // Returns a vector of bitmasks and their corresponding index 
 // in the indexed unit (row, col, or box) that they belong to
 // Boxes are indexed left to right, then top to bottom
