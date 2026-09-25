@@ -4,14 +4,17 @@ use std::time::Instant;
 use indicatif::{ProgressBar, ProgressStyle, ParallelProgressIterator};
 use rayon::prelude::*;
 
-use crate::box_line::*;
 use crate::candidates::*;
 use crate::helpers::*;
-use crate::pairs::*;
-use crate::singles::*;
-use crate::subsets::*;
-use crate::swordfish::*;
 use crate::types::*;
+
+use crate::heuristics::{
+    box_line::*,
+    pairs::*,
+    singles::*,
+    subsets::*,
+    swordfish::*
+};
 
 pub enum Difficulty {
     Easy,
