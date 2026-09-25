@@ -140,6 +140,7 @@ pub fn test_performance(difficulty: &Difficulty) {
     let mut solved: usize = 0;
     let mut fail_sum: f64 = 0.0;
     let mut rate_sum: u128 = 0;
+    let mut min_fail: f64 = f64::MAX;
     for (rate, data) in results {
         if rate.is_some() {
             solved += 1;
@@ -149,6 +150,7 @@ pub fn test_performance(difficulty: &Difficulty) {
             fails += 1;
             fail_sum += data.diff;
             last_failed_board = Some(data.board);
+            min_fail = min_fail.min(data.diff);
         }
     }
 
@@ -165,7 +167,8 @@ pub fn test_performance(difficulty: &Difficulty) {
     }
     else {
         let avg_fail = fail_sum / fails as f64;
-        println!("Average failure difficulty: {avg_fail} across {fails} tests");
+        println!("Average failure difficulty: {avg_fail:.2} across {fails} tests");
+        println!("Lowest failure difficulty: {min_fail:.2}");
         let percent = 100.0 * ((num_boards - fails) as f32 / num_boards as f32);
         println!("Solved {percent:.2}% of puzzles");
         println!("Last failed board:");
