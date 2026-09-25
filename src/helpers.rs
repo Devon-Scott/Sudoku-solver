@@ -268,7 +268,20 @@ pub fn cells_to_grid(board: &Board) -> Grid {
     Grid(result)
 }
 
+// If cell 1 can "see" cell 2, return true
+// That is, the two cells share a row, a column, or a box
+pub fn visible_to(r1: usize, c1: usize, r2: usize, c2: usize) -> bool {
+    // Row check
+    if r1 == r2 && c1 != c2 { return true }
+    if c1 == c2 && r1 != r2 { return true }
 
+    let b1 = row_col_to_box_index(r1, c1);
+    let b2 = row_col_to_box_index(r2, c2);
+
+    if b1 == b2 && r1 != r2 && c1 != c2 { return true }
+
+    false
+}
 
 #[cfg(test)]
 mod tests {
