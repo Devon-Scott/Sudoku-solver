@@ -1,6 +1,5 @@
 use crate::helpers::*;
 use crate::types::*;
-use crate::subsets::iterate_for_subsets;
 
 fn isolate_naked_doubles_from_masks(candidate_set: &Vec<(usize, BitMask)>) -> Vec<(usize, usize, BitMask)>{
     let mut result: Vec<(usize, usize, BitMask)> = Vec::new();
@@ -105,6 +104,10 @@ pub fn determine_hidden_doubles(board: &mut Board) -> bool {
             // Iterating through all 9 rows, columns, and boxes
             let mut candidate_set = 
                 get_unit_candidate_masks(board, index, mode);
+
+            if candidate_set.len() == 0 {
+                continue;
+            }
 
             // Positions[value] is every index where value is a candidate
             let mut positions: [BitMask; 9] = [[false; 9] ; 9];

@@ -1,27 +1,25 @@
-mod box_line;
 mod candidates;
 mod helpers;
-mod pairs;
 mod parser;
 mod perf_tester;
-mod singles;
-mod subsets;
-mod swordfish;
+mod heuristics;
 mod test_puzzles;
 mod types;
 
 use std::{io, env};
 use std::time::Instant;
 
-use crate::box_line::*;
 use crate::candidates::*;
 use crate::helpers::*;
-use crate::pairs::*;
 use crate::parser::*;
 use crate::perf_tester::{Difficulty, test_performance};
-use crate::singles::*;
-use crate::subsets::*;
-use crate::swordfish::*;
+use crate::heuristics::{
+    box_line::*,
+    pairs::*,
+    singles::*,
+    subsets::*,
+    swordfish::*
+};
 use crate::test_puzzles::*;
 use crate::types::*;
 

@@ -28,6 +28,10 @@ pub fn eliminate_pointing_sets(board: &mut Board) -> bool {
     for box_idx in 0..9 {
         let candidate_set = 
             get_unit_candidate_masks(board, box_idx, UnitMode::Box);
+
+        if candidate_set.len() == 0 {
+            continue;
+        }
         
         // Collect all indices where value is a candidate. Return 10 from the map since it needs to be of type usize
         for value in 0..9 {

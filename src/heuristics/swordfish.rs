@@ -1,6 +1,5 @@
 use crate::helpers::*;
 use crate::types::*;
-use crate::subsets::iterate_for_subsets;
 
 fn generate_union_intersect(masks: &Vec<Vec<(usize, [bool; 9])>>, value: usize) -> (BitMask, BitMask) {
     let mut union: BitMask = [false; 9];
