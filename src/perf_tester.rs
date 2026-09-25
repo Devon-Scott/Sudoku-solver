@@ -6,6 +6,7 @@ use rayon::prelude::*;
 
 use crate::candidates::*;
 use crate::helpers::*;
+use crate::heuristics::xyz_wing::xyz_wing;
 use crate::types::*;
 
 use crate::heuristics::{
@@ -74,6 +75,7 @@ fn solve(data: &mut Data) -> (Option<u128>, Data) {
         c |= determine_naked_subsets(&mut board);
         c |= swordfish_elimination(&mut board);
         c |= solve_singles(&mut board);
+        c |= xyz_wing(&mut board);
         // if c {
         //     iter += 1;
         // }

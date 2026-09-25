@@ -15,6 +15,26 @@ impl UnitMode {
     ];
 }
 
+pub fn row_col_to_box_index(row: usize, col: usize) -> usize {
+    let box_row = row / 3;
+    let box_col = col / 3;
+    return (box_row * 3) + box_col
+}
+
+// box_index: which of the 9 large boxes
+// sub_index: which cell within a single box
+pub fn box_index_to_row_col(box_index: usize, sub_index: usize) -> (usize, usize) {
+    let mut row = box_index / 3;
+    row *= 3;
+    row += sub_index / 3;
+
+    let mut col = box_index % 3;
+    col *= 3;
+    col += sub_index % 3;
+
+    (row, col)
+}
+
 pub fn iterate_for_subsets<T:Clone + Copy>(set: &Vec<T>, 
                                         size: usize, 
                                         start: usize,
@@ -246,4 +266,47 @@ pub fn cells_to_grid(board: &Board) -> Grid {
         }
     }
     Grid(result)
+}
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn box_index_to_row_col_test_1(){
+        let bx = 7;
+        let sub = 2;
+        let (row, col) = box_index_to_row_col(bx, sub);
+        assert_eq!(row, 6);
+        assert_eq!(col, 5)
+    }
+
+    #[test]
+    fn box_index_to_row_col_test_2(){
+        let bx = 0;
+        let sub = 7;
+        let (row, col) = box_index_to_row_col(bx, sub);
+        assert_eq!(row, 2);
+        assert_eq!(col, 1)
+    }
+
+    #[test]
+    fn box_index_to_row_col_test_3(){
+        let bx = 5;
+        let sub = 5;
+        let (row, col) = box_index_to_row_col(bx, sub);
+        assert_eq!(row, 4);
+        assert_eq!(col, 8)
+    }
+
+    #[test]
+    fn box_index_to_row_col_test_4(){
+        let bx = 6;
+        let sub = 6;
+        let (row, col) = box_index_to_row_col(bx, sub);
+        assert_eq!(row, 8);
+        assert_eq!(col, 0)
+    }
 }

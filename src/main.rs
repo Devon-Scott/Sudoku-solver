@@ -18,7 +18,8 @@ use crate::heuristics::{
     pairs::*,
     singles::*,
     subsets::*,
-    swordfish::*
+    swordfish::*,
+    xyz_wing::*
 };
 use crate::test_puzzles::*;
 use crate::types::*;
@@ -151,6 +152,8 @@ fn main() -> Result<(), io::Error>{
         c |= solve_singles(&mut board);
         c |= determine_naked_subsets(&mut board);
         c |= swordfish_elimination(&mut board);
+        c |= solve_singles(&mut board);
+        c |= xyz_wing(&mut board);
         c |= solve_singles(&mut board);
         if c {
             iter += 1;
@@ -351,6 +354,15 @@ mod tests {
                 &board,
                 &NOT_FUN_SOLUTION,
                 "Swordfish Elimination",
+            );
+
+            changed |= xyz_wing(&mut board);
+            assert_no_duplicate_values(&board, "XYZ Wing Elimination");
+            assert_no_empty_candidates(&board, "XYZ Wing Elimination");
+            assert_solution_still_possible(
+                &board,
+                &NOT_FUN_SOLUTION,
+                "XYZ Wing Elimination",
             );
 
             if !changed {
