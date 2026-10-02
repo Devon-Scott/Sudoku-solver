@@ -65,6 +65,16 @@ pub enum Cell {
     Value(usize)
 }
 
+#[cfg(test)]
+impl Cell {
+    pub fn candidates(&self) -> Option<&BitMask> {
+        match self {
+            Cell::Candidates(mask) => Some(mask),
+            _ => None,
+        }
+    }
+}
+
 pub type BasicGrid = [[usize;9]; 9];
 pub struct Grid(pub BasicGrid);
 

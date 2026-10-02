@@ -6,6 +6,7 @@ use rayon::prelude::*;
 
 use crate::candidates::*;
 use crate::helpers::*;
+use crate::heuristics::chute_remote_pairs::chute_remote_pairs;
 use crate::heuristics::xyz_wing::xyz_wing;
 use crate::types::*;
 
@@ -76,6 +77,8 @@ fn solve(data: &mut Data) -> (Option<u128>, Data) {
         c |= swordfish_elimination(&mut board);
         c |= solve_singles(&mut board);
         c |= xyz_wing(&mut board);
+        c |= solve_singles(&mut board);
+        c |= chute_remote_pairs(&mut board);
         // if c {
         //     iter += 1;
         // }

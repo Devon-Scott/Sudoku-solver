@@ -15,6 +15,7 @@ use crate::parser::*;
 use crate::perf_tester::{Difficulty, test_performance};
 use crate::heuristics::{
     box_line::*,
+    chute_remote_pairs::*,
     pairs::*,
     singles::*,
     subsets::*,
@@ -152,6 +153,8 @@ fn main() -> Result<(), io::Error>{
         c |= solve_singles(&mut board);
         c |= determine_naked_subsets(&mut board);
         c |= swordfish_elimination(&mut board);
+        c |= solve_singles(&mut board);
+        c |= chute_remote_pairs(&mut board);
         c |= solve_singles(&mut board);
         c |= xyz_wing(&mut board);
         c |= solve_singles(&mut board);
@@ -363,6 +366,15 @@ mod tests {
                 &board,
                 &NOT_FUN_SOLUTION,
                 "XYZ Wing Elimination",
+            );
+
+            changed |= chute_remote_pairs(&mut board);
+            assert_no_duplicate_values(&board, "Chute Remote Pairs");
+            assert_no_empty_candidates(&board, "Chute Remote Pairs");
+            assert_solution_still_possible(
+                &board,
+                &NOT_FUN_SOLUTION,
+                "Chute Remote Pairs",
             );
 
             if !changed {
