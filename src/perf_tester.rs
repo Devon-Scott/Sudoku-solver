@@ -106,9 +106,7 @@ pub fn test_performance(difficulty: &Difficulty) {
     let path = format!("data/{diff_text}.txt");
     
     let file = fs::read_to_string(path)
-        .expect("File could not be found");
-
-    let mut last_failed_board = None;    
+        .expect("File could not be found"); 
 
     let mut dataset: Vec<Data> = Vec::new();
 
@@ -137,8 +135,8 @@ pub fn test_performance(difficulty: &Difficulty) {
         .collect();
     pb.finish();
     
-    
 
+    let mut easiest_failed_board = None;   
     let mut fails: usize = 0;
     let mut solved: usize = 0;
     let mut fail_sum: f64 = 0.0;
@@ -152,8 +150,10 @@ pub fn test_performance(difficulty: &Difficulty) {
         else {
             fails += 1;
             fail_sum += data.diff;
-            last_failed_board = Some(data.board);
-            min_fail = min_fail.min(data.diff);
+            if data.diff < min_fail {
+                easiest_failed_board = Some(data.board);
+                min_fail = data.diff;
+            }
         }
     }
 
@@ -174,8 +174,8 @@ pub fn test_performance(difficulty: &Difficulty) {
         println!("Lowest failure difficulty: {min_fail:.2}");
         let percent = 100.0 * ((num_boards - fails) as f32 / num_boards as f32);
         println!("Solved {percent:.2}% of puzzles");
-        println!("Last failed board:");
-        let failed_board: Grid = cells_to_grid(&last_failed_board.unwrap());
+        println!("Easiest failed board:");
+        let failed_board: Grid = cells_to_grid(&easiest_failed_board.unwrap());
         println!("{failed_board}");
     }
 }

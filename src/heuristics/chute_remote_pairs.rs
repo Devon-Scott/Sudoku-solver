@@ -4,7 +4,168 @@ use crate::types::*;
 pub fn chute_remote_pairs(board: &mut Board) -> bool {
     let mut change = false;
 
-    
+    // for mode in (UnitMode::Row, UnitMode::Column) {
+
+    // }
+    for row_1 in 0..9 {
+        for row_2 in 0..9 {
+            if row_1 == row_2 || (row_1 / 3) != (row_2 / 3) {
+                // Ensure both rows are in the same row of boxes
+                continue;
+            }
+
+            let r1_candidate_set = 
+                get_unit_candidate_masks(board, row_1, UnitMode::Row);
+            let r2_candidate_set = 
+                get_unit_candidate_masks(board, row_2, UnitMode::Row);
+
+            for (c1, rc1) in &r1_candidate_set {
+                for (c2, rc2) in &r2_candidate_set {
+                    if (c1 / 3) == (c2 / 3) {
+                        // ensure two candidates are not in the same box
+                        continue;
+                    }
+
+                    if rc1.bits_set() == 2 && rc1 == rc2 {
+                        // Find the third row and third box among the three
+                        let third_box = 3 - (c1 / 3) - (c2/ 3);
+                        assert!(third_box != (c1 / 3));
+                        assert!(third_box != (c2 / 3));
+                        let base = ((row_1 / 3) * 3) * 3 + 3;
+                        assert!(base >= row_1 + row_2, "Values were: base {base}, row_1 {row_1}, row_2 {row_2}");
+                        let third_row = base - row_1 - row_2;
+
+                        // TODO: I did this backwards. I need to use absence, not presence, as evidence
+                        // Load the rest of the examples as test cases
+                        let mut values: BitMask = [false; 9];
+                        for chute in 0..3 {
+                            let col = (third_box * 3) + chute;
+                            if let Cell::Candidates(mask) = board[third_row][col] {
+                                values.or(&mask);
+                            }
+                            else if let Cell::Value(value) = board[third_row][col] {
+                                values[value - 1] = true;
+                            }
+                        }
+                        if values.bits_and(rc1).bits_set() == 1 {
+                            // Get the value
+                            let mask_val = values.bits_and(&rc1).iter().position(|&x| x).unwrap();
+                            for col in 0..9 {
+                                // Cells in row_1
+                                let mut visible = true;
+                                visible &= visible_to(row_1, col, row_1, *c1);
+                                visible &= visible_to(row_1, col, row_2, *c2);
+
+                                if visible {
+                                    if let Cell::Candidates(ref mut mask) = board[row_1][col] {
+                                        if mask[mask_val] {
+                                            mask[mask_val] = false;
+                                            change = true;
+                                            assert!(mask.bits_set() > 0);
+                                        }
+                                    }
+                                }
+
+                                // Cells in row 2
+                                visible = true;
+                                visible &= visible_to(row_2, col, row_1, *c1);
+                                visible &= visible_to(row_2, col, row_2, *c2);
+
+                                if visible {
+                                    if let Cell::Candidates(ref mut mask) = board[row_2][col] {
+                                        if mask[mask_val] {
+                                            mask[mask_val] = false;
+                                            change = true;
+                                            assert!(mask.bits_set() > 0);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    for col_1 in 0..9 {
+        for col_2 in 0..9 {
+            if col_1 == col_2 || (col_1 / 3) != (col_2 / 3) {
+                // Ensure both cols are in the same col of boxes
+                continue;
+            }
+
+            let c1_candidate_set = 
+                get_unit_candidate_masks(board, col_1, UnitMode::Column);
+            let c2_candidate_set = 
+                get_unit_candidate_masks(board, col_2, UnitMode::Column);
+
+            for (r1, cc1) in &c1_candidate_set {
+                for (r2, cc2) in &c2_candidate_set {
+                    if (r1 / 3) == (r2 / 3) {
+                        // ensure two candidates are not in the same box
+                        continue;
+                    }
+
+                    if cc1.bits_set() == 2 && cc1 == cc2 {
+                        // Find the third row and third box among the three
+                        let third_box = 3 - (r1 / 3) - (r2/ 3);
+                        let base = ((col_1 / 3) * 3) * 3 + 3;
+                        assert!(base >= col_1 + col_2, "Values were: base {base}, col_1 {col_1}, col_2 {col_2}");
+                        let third_col = base - col_1 - col_2;
+
+                        let mut values: BitMask = [false; 9];
+                        for chute in 0..3 {
+                            let row = (third_box * 3) + chute;
+                            if let Cell::Candidates(mask) = board[row][third_col] {
+                                values.or(&mask);
+                            }
+                            else if let Cell::Value(value) = board[row][third_col] {
+                                values[value - 1] = true;
+                            }
+                        }
+                        if values.bits_and(cc1).bits_set() == 1 {
+                            // Get the value
+                            let mask_val = values.bits_and(&cc1).iter().position(|&x| x).unwrap();
+                            for row in 0..9 {
+                                // Cells in col_1
+                                let mut visible = true;
+                                visible &= visible_to(row, col_1, *r1, col_1);
+                                visible &= visible_to(row, col_1, *r2, col_2);
+
+                                if visible {
+                                    if let Cell::Candidates(ref mut mask) = board[row][col_1] {
+                                        if mask[mask_val] {
+                                            mask[mask_val] = false;
+                                            change = true;
+                                            assert!(mask.bits_set() > 0);
+                                        }
+                                    }
+                                }
+
+                                // Cells in row 2
+                                visible = true;
+                                visible &= visible_to(row, col_2, *r1, col_1);
+                                visible &= visible_to(row, col_2, *r2, col_2);
+
+                                if visible {
+                                    if let Cell::Candidates(ref mut mask) = board[row][col_2] {
+                                        if mask[mask_val] {
+                                            mask[mask_val] = false;
+                                            change = true;
+                                            assert!(mask.bits_set() > 0);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     change
 }
 
